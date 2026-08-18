@@ -1,0 +1,223 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Mentor Analytics - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">Mentor Chat Monitoring</h2>
+            <p class="text-secondary small">Inspect candidate career coaching queries, tutoring threads, and HR mock discussions</p>
+        </div>
+    </div>
+
+    <!-- Stats summary grid -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Total Chat Sessions</small>
+                    <span class="fs-3 fw-bold text-white">{{ total_sessions }}</span>
+                </div>
+                <div class="widget-icon bg-warning-light text-warning">
+                    <i class="bi bi-chat-left-dots-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Avg Session Length</small>
+                    <span class="fs-3 fw-bold text-success">{{ avg_length }} messages</span>
+                </div>
+                <div class="widget-icon bg-success-light text-success">
+                    <i class="bi bi-chat-left-quote-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Most Frequent Mode</small>
+                    <span class="fs-4 fw-bold text-gradient-primary" style="font-size: 1.15rem !important;">
+                        {% if frequent_topics %}
+                            {{ frequent_topics[0].mode }}
+                        {% else %}
+                            General Chat
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="widget-icon bg-primary-light text-primary">
+                    <i class="bi bi-hash"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active users list -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="bi bi-trophy-fill text-gradient-primary me-2"></i>Most Active Chatters</h5>
+                <ul class="list-group list-group-flush text-white">
+                    {% if active_users %}
+                        {% for user, count in active_users %}
+                        <li class="list-group-item bg-transparent border-bottom border-opacity-10 py-3.5 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if user.profile_photo and user.profile_photo != 'default_profile.png' %}
+                                    <img src="{{ url_for('serve_upload', filename=user.profile_photo) }}" alt="Avatar" class="rounded-circle" style="width: 25px; height: 25px; object-fit: cover;">
+                                {% else %}
+                                    <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                                {% endif %}
+                                <span class="fw-semibold text-white">{{ user.full_name or user.username }}</span>
+                            </div>
+                            <span class="badge bg-warning text-dark fw-bold rounded-pill">{{ count }} sessions</span>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="list-group-item bg-transparent text-secondary py-4 text-center">
+                            No active chat users found
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Frequently asked topics list -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-gradient-primary me-2"></i>Topic Mode Frequencies</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0" style="background-color: transparent !important;">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Prep Topic Category</th>
+                                <th class="text-center">Assigned Sessions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if frequent_topics %}
+                                {% for topic in frequent_topics %}
+                                <tr>
+                                    <td><strong>{{ topic.mode }}</strong></td>
+                                    <td class="text-center fw-semibold text-warning">{{ topic.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">No topics parsed</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active sessions paginated list -->
+    <div class="glass-card p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-chat-left-text-fill text-gradient-primary me-2"></i>Active Conversation Threads</h5>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important;">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Session ID</th>
+                        <th>User Info</th>
+                        <th>Chat Title</th>
+                        <th>Category</th>
+                        <th class="text-center">Messages</th>
+                        <th class="text-center">Duration</th>
+                        <th>Last Active</th>
+                        <th class="text-center">Performance Stats</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if pagination.items %}
+                        {% for s in pagination.items %}
+                        <tr>
+                            <td class="fw-bold">#{{ s.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if s.user and s.user.profile_photo and s.user.profile_photo != 'default_profile.png' %}
+                                        <img src="{{ url_for('serve_upload', filename=s.user.profile_photo) }}" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                                    {% else %}
+                                        <i class="bi bi-person-circle fs-4 text-secondary"></i>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-semibold d-block text-white">{{ s.user.name if s.user else 'Unknown User' }}</span>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">{{ s.user.email if s.user else 'N/A' }}</small>
+                                        <span class="badge bg-secondary-light text-secondary-light-text" style="font-size: 0.65rem; padding: 0.1rem 0.3rem;">
+                                            Total Sessions: {{ s.user.mentor_sessions_count if s.user else 0 }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="small">{{ s.title }}</td>
+                            <td>
+                                <span class="badge bg-warning-light text-warning">{{ s.mode }}</span>
+                            </td>
+                            <td class="text-center fw-bold text-warning">{{ s.num_messages or 0 }}</td>
+                            <td class="text-center small">{{ ((s.duration or 0)/60)|round(1) }} min</td>
+                            <td class="small text-secondary">{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td class="text-center">
+                                {% if s.user %}
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <span class="badge bg-success-light text-success" style="font-size: 0.75rem;">Avg Score: {{ s.user.average_score }}%</span>
+                                        <span class="badge bg-primary-light text-primary" style="font-size: 0.75rem;">High Score: {{ s.user.highest_score }}%</span>
+                                        <span class="text-muted extra-small" style="font-size: 0.7rem;">Interviews: {{ s.user.total_interviews }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-secondary small">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('admin.mentor_conversation_history', session_id=s.id) }}" class="btn btn-sm btn-outline-warning" style="border-radius: 8px;">
+                                    <i class="bi bi-chat-quote-fill"></i> View Conversation
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center p-4 text-secondary">
+                                No chat conversation sessions matching the filters were found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination pagination-sm gap-1 mb-0">
+                <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                    <a class="page-link bg-dark text-white border-0" href="{{ url_for('admin.mentor_analytics', page=pagination.prev_num) }}" style="border-radius: 6px;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+                            <a class="page-link border-0 {{ 'bg-primary text-white' if page_num == pagination.page else 'bg-dark text-white' }}" href="{{ url_for('admin.mentor_analytics', page=page_num) }}" style="border-radius: 6px;">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link bg-transparent border-0 text-muted">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                    <a class="page-link bg-dark text-white border-0" href="{{ url_for('admin.mentor_analytics', page=pagination.next_num) }}" style="border-radius: 6px;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

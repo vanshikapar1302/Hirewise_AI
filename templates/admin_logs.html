@@ -1,0 +1,169 @@
+{% extends "admin_base.html" %}
+
+{% block title %}System Diagnostics - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">System Diagnostics Logs</h2>
+            <p class="text-secondary small">Review internal server events, warnings, database cascades, and LLM API transaction metrics</p>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="d-flex gap-2 mb-4">
+        <a href="{{ url_for('admin.logs_viewer', type='system') }}" class="btn {{ 'btn-primary' if log_type == 'system' else 'btn-outline-secondary' }} px-4 py-2" style="border-radius: 10px;">
+            <i class="bi bi-terminal-fill me-1"></i> System Audit Logs
+        </a>
+        <a href="{{ url_for('admin.logs_viewer', type='api') }}" class="btn {{ 'btn-primary' if log_type == 'api' else 'btn-outline-secondary' }} px-4 py-2" style="border-radius: 10px;">
+            <i class="bi bi-cloud-check-fill me-1"></i> LLM API Call Logs
+        </a>
+    </div>
+
+    <!-- Level and Filter Card -->
+    <div class="glass-card mb-4 p-3">
+        <form action="{{ url_for('admin.logs_viewer') }}" method="GET" class="row g-3 align-items-center">
+            <input type="hidden" name="type" value="{{ log_type }}">
+            <div class="col-md-4">
+                <select class="form-select bg-dark text-white border-0 py-2.5 px-3" name="level" style="border-radius: 10px; border: 1px solid var(--border-color) !important;">
+                    {% if log_type == 'api' %}
+                        <option value="">All Statuses</option>
+                        <option value="success" {{ 'selected' if level == 'success' else '' }}>Success Calls</option>
+                        <option value="failed" {{ 'selected' if level == 'failed' else '' }}>Failed Calls / Fallbacks</option>
+                    {% else %}
+                        <option value="">All Log Levels</option>
+                        <option value="INFO" {{ 'selected' if level == 'INFO' else '' }}>INFO Logs</option>
+                        <option value="WARNING" {{ 'selected' if level == 'WARNING' else '' }}>WARNING Logs</option>
+                        <option value="ERROR" {{ 'selected' if level == 'ERROR' else '' }}>ERROR Logs</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold" style="border-radius: 10px;">
+                    Filter Logs
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('admin.logs_viewer', type=log_type) }}" class="btn btn-outline-secondary w-100 py-2.5 fw-semibold" style="border-radius: 10px;">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs list -->
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important; font-family: monospace;">
+                {% if log_type == 'api' %}
+                    <!-- API Logs Table -->
+                    <thead>
+                        <tr class="text-muted small">
+                            <th>Log ID</th>
+                            <th>Provider</th>
+                            <th>Endpoint</th>
+                            <th>Latency (sec)</th>
+                            <th>Status Code</th>
+                            <th>Result</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if pagination.items %}
+                            {% for l in pagination.items %}
+                            <tr>
+                                <td class="fw-bold text-gradient-primary">#{{ l.id }}</td>
+                                <td class="fw-bold">{{ l.provider.upper() }}</td>
+                                <td class="small text-secondary" style="word-break: break-all;">{{ l.endpoint or 'N/A' }}</td>
+                                <td>
+                                    <span class="fw-semibold text-white">{{ l.response_time }}s</span>
+                                </td>
+                                <td>{{ l.status_code or '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if l.is_success else 'danger' }}-light text-{{ 'success' if l.is_success else 'danger' }} px-2 py-0.5">
+                                        {{ 'SUCCESS' if l.is_success else 'FAILED' }}
+                                    </span>
+                                </td>
+                                <td class="small text-secondary">{{ l.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center p-5 text-muted">
+                                    <i class="bi bi-cloud-slash display-4 mb-3 d-block"></i>
+                                    No LLM API log entries found.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                {% else %}
+                    <!-- System Logs Table -->
+                    <thead>
+                        <tr class="text-muted small">
+                            <th>Log ID</th>
+                            <th>Level</th>
+                            <th>Module</th>
+                            <th>Message</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if pagination.items %}
+                            {% for l in pagination.items %}
+                            <tr>
+                                <td class="fw-bold text-gradient-primary">#{{ l.id }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if l.level == 'ERROR' else ('warning' if l.level == 'WARNING' else 'info') }}-light text-{{ 'danger' if l.level == 'ERROR' else ('warning' if l.level == 'WARNING' else 'info') }} px-2.5 py-1">
+                                        {{ l.level }}
+                                    </span>
+                                </td>
+                                <td class="fw-semibold text-white">{{ l.module or 'general' }}</td>
+                                <td class="small text-secondary" style="max-width: 400px; word-break: break-word;">{{ l.message }}</td>
+                                <td class="small text-secondary">{{ l.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center p-5 text-muted">
+                                    <i class="bi bi-terminal display-4 mb-3 d-block"></i>
+                                    No system audit log entries found.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination pagination-sm gap-1 mb-0">
+                <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                    <a class="page-link bg-dark text-white border-0" href="{{ url_for('admin.logs_viewer', type=log_type, level=level, page=pagination.prev_num) }}" style="border-radius: 6px;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+                            <a class="page-link border-0 {{ 'bg-primary text-white' if page_num == pagination.page else 'bg-dark text-white' }}" href="{{ url_for('admin.logs_viewer', type=log_type, level=level, page=page_num) }}" style="border-radius: 6px;">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link bg-transparent border-0 text-muted">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                    <a class="page-link bg-dark text-white border-0" href="{{ url_for('admin.logs_viewer', type=log_type, level=level, page=pagination.next_num) }}" style="border-radius: 6px;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

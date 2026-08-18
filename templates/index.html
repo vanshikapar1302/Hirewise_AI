@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}HireWise AI - Placement Interview Prep Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Hero Section -->
+    <section class="hero-section mb-5">
+        <div>
+            <span class="badge bg-primary-light text-primary px-3 py-2 mb-3 fw-bold" style="border-radius: 20px;">
+                <i class="bi bi-stars me-1"></i> AI-Powered Placement Prep
+            </span>
+            <h1 class="display-4 fw-bold mb-3">Master Your Placement Interviews with <span class="text-gradient-primary">HireWise AI</span></h1>
+            <p class="lead text-secondary mb-4" style="line-height: 1.7;">
+                Bridge the gap between engineering college and your dream job. Run realistic HR & technical mock simulations, parse your resume to generate customized questions, and obtain instant multi-dimensional feedback.
+            </p>
+            <div class="d-flex gap-3">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary px-4 py-3 fw-bold shadow-sm" style="border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none;">
+                    Get Started Free <i class="bi bi-arrow-right-short ms-1"></i>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary px-4 py-3 fw-bold" style="border-radius: 12px; border: 1px solid var(--border-color);">
+                    Sign In
+                </a>
+            </div>
+        </div>
+        
+        <!-- Interactive Hero Display -->
+        <div class="glass-card bg-gradient-dark text-white p-4 h-100 d-flex flex-column justify-content-between relative" style="border-radius: 24px; min-height: 350px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+                    <span class="small fw-bold tracking-wide">MOCK ROOM SIMULATOR</span>
+                </div>
+                <span class="badge bg-danger">LIVE ANALYSIS</span>
+            </div>
+            
+            <div class="text-center my-4">
+                <div class="d-inline-block p-4 bg-dark bg-opacity-50 rounded-circle mb-3 border border-secondary border-opacity-25" style="backdrop-filter: blur(8px);">
+                    <i class="bi bi-mic-fill text-gradient-primary display-4"></i>
+                </div>
+                <h3 class="h4">"Explain your final year project architecture."</h3>
+                <p class="text-muted small">Gemini is listening & evaluating eye contact...</p>
+            </div>
+            
+            <!-- Floating metrics simulation -->
+            <div class="row g-2 mt-auto">
+                <div class="col-4">
+                    <div class="bg-white bg-opacity-10 p-2 rounded-3 text-center border border-white border-opacity-10">
+                        <small class="text-muted d-block">Speaking Pace</small>
+                        <span class="fw-bold text-success">130 WPM</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="bg-white bg-opacity-10 p-2 rounded-3 text-center border border-white border-opacity-10">
+                        <small class="text-muted d-block">Eye Focus</small>
+                        <span class="fw-bold text-info">92%</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="bg-white bg-opacity-10 p-2 rounded-3 text-center border border-white border-opacity-10">
+                        <small class="text-muted d-block">Filler Words</small>
+                        <span class="fw-bold text-danger">02 Uh/Like</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Company Profiles Section -->
+    <div class="glass-card mb-5 p-4 text-center">
+        <h5 class="text-muted mb-4 uppercase small tracking-widest">PREPARE FOR LEADING CORPORATE SELECTIONS</h5>
+        <div class="row justify-content-center align-items-center g-4">
+            <div class="col-6 col-md-2">
+                <div class="p-2 border border-dashed rounded-3 text-secondary fw-bold">Amazon</div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="p-2 border border-dashed rounded-3 text-secondary fw-bold">Google</div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="p-2 border border-dashed rounded-3 text-secondary fw-bold">Microsoft</div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="p-2 border border-dashed rounded-3 text-secondary fw-bold">TCS</div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="p-2 border border-dashed rounded-3 text-secondary fw-bold">Infosys</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Features Grid -->
+    <h2 class="text-center mb-4 fw-bold">Why Prepare with HireWise AI?</h2>
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="widget-icon bg-primary-light text-primary mb-3">
+                    <i class="bi bi-mic"></i>
+                </div>
+                <h4 class="fw-bold">Fluency & Speaking Speed</h4>
+                <p class="text-secondary">
+                    Measure your WPM (Words-per-minute) and auto-detect standard filler words like <em>'like'</em>, <em>'basically'</em>, <em>'you know'</em>, and <em>'matlab'</em> to optimize your speaking cadence.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="widget-icon bg-success-light text-success mb-3">
+                    <i class="bi bi-eye"></i>
+                </div>
+                <h4 class="fw-bold">Gaze & Attention Tracking</h4>
+                <p class="text-secondary">
+                    Uses local camera feed via OpenCV and MediaPipe Face Mesh to map horizontal and vertical gaze alignments, assessing your camera-contact percentage and confidence level.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="glass-card h-100">
+                <div class="widget-icon bg-info-light text-info mb-3">
+                    <i class="bi bi-journal-code"></i>
+                </div>
+                <h4 class="fw-bold">Gemini Explanations</h4>
+                <p class="text-secondary">
+                    Get detailed score breakdowns based on relevance, structure, and clarity. Obtain clear paragraphs detailing exactly why you lost points and how to refactor your answers.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resume Integration Highlight -->
+    <div class="glass-card mb-5 overflow-hidden">
+        <div class="row align-items-center g-4">
+            <div class="col-md-6">
+                <div class="p-2">
+                    <h2 class="fw-bold mb-3">Personalized Resume-Based Mode</h2>
+                    <p class="text-secondary mb-4">
+                        Upload your PDF resume to extract projects, work experiences, and core competencies. HireWise AI parses the text and leverages LLM capabilities to ask hyper-specific, direct interview questions about your real projects.
+                    </p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary fw-bold" style="border-radius: 10px;">
+                        Try Resume Parser
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6 text-center">
+                <div class="p-4 bg-primary-light rounded-4 d-flex flex-column align-items-center justify-content-center border" style="min-height: 250px;">
+                    <i class="bi bi-file-earmark-pdf text-primary display-2 mb-3"></i>
+                    <h5 class="fw-bold">Drag & Drop Resume PDF</h5>
+                    <span class="text-muted small">Analyze projects & extract skill-aligned questions</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials or CTA Footer -->
+    <div class="text-center py-5">
+        <h3 class="fw-bold mb-3">Are You Ready to Ace Your Placement?</h3>
+        <p class="text-secondary mb-4 mx-auto" style="max-width: 600px;">
+            Join engineering students preparing for top MNCs. Enhance your confidence, articulate technical designs, and master interviews.
+        </p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5 py-3 shadow" style="border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none;">
+            Register & Start Prep
+        </a>
+    </div>
+</div>
+{% endblock %}

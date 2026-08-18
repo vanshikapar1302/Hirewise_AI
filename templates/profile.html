@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}User Settings - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 900px; margin: 0 auto;">
+    <header class="mb-4">
+        <h1 class="fw-bold mb-1">Account Profile</h1>
+        <p class="text-secondary">Manage your credentials, password parameters, and profile photo metadata.</p>
+    </header>
+
+    <div class="row g-4">
+        <!-- Profile & Password Forms -->
+        <div class="col-md-7">
+            <!-- Profile details -->
+            <div class="glass-card mb-4">
+                <h4 class="fw-bold mb-3"><i class="bi bi-person-gear text-primary me-2"></i>Edit Profile Info</h4>
+                <form action="{{ url_for('auth.profile') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="update_profile">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">Username</label>
+                        <input type="text" 
+                               class="form-control form-control-custom" 
+                               id="username" 
+                               name="username" 
+                               value="{{ current_user.username }}" 
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label fw-semibold">Full Name</label>
+                        <input type="text" 
+                               class="form-control form-control-custom" 
+                               id="full_name" 
+                               name="full_name" 
+                               value="{{ current_user.full_name or '' }}" 
+                               placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold">Email Address</label>
+                        <input type="email" 
+                               class="form-control form-control-custom" 
+                               id="email" 
+                               name="email" 
+                               value="{{ current_user.email }}" 
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="profile_photo" class="form-label fw-semibold">Profile Photo</label>
+                        <input type="file" 
+                               class="form-control form-control-custom" 
+                               id="profile_photo" 
+                               name="profile_photo" 
+                               accept="image/*">
+                        <small class="text-muted small d-block mt-1">Supported formats: PNG, JPG, JPEG, GIF</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary px-4 py-2 mt-2" style="border-radius: 8px;">
+                        Save Profile Details
+                    </button>
+                </form>
+            </div>
+
+            <!-- Change Password -->
+            <div class="glass-card">
+                <h4 class="fw-bold mb-3"><i class="bi bi-shield-lock text-primary me-2"></i>Change Security Password</h4>
+                <form action="{{ url_for('auth.profile') }}" method="POST">
+                    <input type="hidden" name="action" value="change_password">
+                    
+                    <div class="mb-3">
+                        <label for="old_password" class="form-label fw-semibold">Current Password</label>
+                        <input type="password" 
+                               class="form-control form-control-custom" 
+                               id="old_password" 
+                               name="old_password" 
+                               placeholder="••••••••" 
+                               required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label fw-semibold">New Password</label>
+                        <input type="password" 
+                               class="form-control form-control-custom" 
+                               id="new_password" 
+                               name="new_password" 
+                               placeholder="••••••••" 
+                               minlength="6"
+                               required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary px-4 py-2 mt-2" style="border-radius: 8px;">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions & Danger Zone -->
+        <div class="col-md-5">
+            <!-- Summary Profile Stats -->
+            <div class="glass-card mb-4 text-center">
+                {% if current_user.profile_photo and current_user.profile_photo != 'default_profile.png' %}
+                    <img src="{{ url_for('serve_upload', filename=current_user.profile_photo) }}" alt="Avatar" class="rounded-circle mb-3 border border-primary border-2 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                {% else %}
+                    <div class="d-inline-flex p-3 rounded-circle bg-primary-light text-primary mb-3">
+                        <i class="bi bi-person-circle display-4"></i>
+                    </div>
+                {% endif %}
+                <h3 class="fw-bold h4 mb-1">{{ current_user.full_name or current_user.username }}</h3>
+                <span class="text-muted small d-block mb-3">{{ current_user.email }}</span>
+                <span class="badge bg-primary-light text-primary py-2 px-3">{{ current_user.skill_level }} Prep Tier</span>
+                
+                <div class="border-top mt-4 pt-3 row text-center">
+                    <div class="col-6 border-end">
+                        <small class="text-muted d-block">Member Since</small>
+                        <span class="fw-bold small">{{ current_user.created_at.strftime('%b %Y') }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Account Status</small>
+                        <span class="fw-bold text-success small"><i class="bi bi-patch-check"></i> Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Preferences Settings -->
+            <div class="glass-card mb-4">
+                <h4 class="fw-bold mb-3"><i class="bi bi-bell text-primary me-2"></i>Notification Settings</h4>
+                <form action="{{ url_for('auth.profile') }}" method="POST">
+                    <input type="hidden" name="action" value="update_notifications">
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="login_emails_enabled" name="login_emails_enabled" {% if current_user.login_emails_enabled %}checked{% endif %} style="cursor: pointer;">
+                        <label class="form-check-label fw-semibold" for="login_emails_enabled" style="cursor: pointer;">Login Notification Emails</label>
+                        <small class="text-muted d-block">Receive alert email every time you log in to your account.</small>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="security_alerts_enabled" name="security_alerts_enabled" {% if current_user.security_alerts_enabled %}checked{% endif %} style="cursor: pointer;">
+                        <label class="form-check-label fw-semibold" for="security_alerts_enabled" style="cursor: pointer;">Security Alerts</label>
+                        <small class="text-muted d-block">Get instantly notified about failed login attempts or access from new devices.</small>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="interview_reports_enabled" name="interview_reports_enabled" {% if current_user.interview_reports_enabled %}checked{% endif %} style="cursor: pointer;">
+                        <label class="form-check-label fw-semibold" for="interview_reports_enabled" style="cursor: pointer;">Interview Performance Reports</label>
+                        <small class="text-muted d-block">Receive a feedback summary after completing mock interviews.</small>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="resume_notifications_enabled" name="resume_notifications_enabled" {% if current_user.resume_notifications_enabled %}checked{% endif %} style="cursor: pointer;">
+                        <label class="form-check-label fw-semibold" for="resume_notifications_enabled" style="cursor: pointer;">Resume Upload Confirmations</label>
+                        <small class="text-muted d-block">Get confirmation and extracted skill analytics after uploading your resume.</small>
+                    </div>
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" id="marketing_emails_enabled" name="marketing_emails_enabled" {% if current_user.marketing_emails_enabled %}checked{% endif %} style="cursor: pointer;">
+                        <label class="form-check-label fw-semibold" for="marketing_emails_enabled" style="cursor: pointer;">Marketing & Updates</label>
+                        <small class="text-muted d-block">Receive updates about new platform features and interview prep tips.</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 8px;">
+                        Save Preferences
+                    </button>
+                </form>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="glass-card border border-danger border-opacity-25" style="background-color: var(--danger-light);">
+                <h4 class="fw-bold text-danger mb-2"><i class="bi bi-trash-fill me-2"></i>Danger Zone</h4>
+                <p class="text-secondary small mb-4">
+                    Deleting your mock interview history is irreversible. All transcripts, scoring records, and local audio/video file links will be deleted.
+                </p>
+                <form action="{{ url_for('auth.profile') }}" method="POST" onsubmit="return confirm('WARNING: Are you absolutely sure you want to delete all your interview attempts? This action is permanent.');">
+                    <input type="hidden" name="action" value="delete_history">
+                    <button type="submit" class="btn btn-danger w-100 py-2.5 fw-semibold" style="border-radius: 8px;">
+                        Delete All Interview History
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

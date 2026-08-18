@@ -1,0 +1,168 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Database Operations - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">Database Operations & Backups</h2>
+            <p class="text-secondary small">Inspect active SQLite database structures, download copies, create backups, and import historical snapshots.</p>
+        </div>
+    </div>
+
+    <!-- Active DB Details Card -->
+    <div class="glass-card p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-2 text-success">
+                        <i class="bi bi-database-check fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0">Active Database Status</h5>
+                        <code class="text-secondary small">{{ db_file }}</code>
+                    </div>
+                </div>
+                <div class="row mt-3 text-secondary small">
+                    <div class="col-sm-4">
+                        <span class="d-block text-muted">File Size</span>
+                        <strong class="text-white">{{ db_size }} MB</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="d-block text-muted">Last Modified</span>
+                        <strong class="text-white">{{ db_modified }}</strong>
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="d-block text-muted">Integrity Status</span>
+                        <strong class="text-success"><i class="bi bi-shield-check me-1"></i> Verified Healthy</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 d-flex flex-wrap gap-2 justify-content-lg-end">
+                <a href="{{ url_for('admin.database_export') }}" class="btn btn-primary px-3 py-2 fw-semibold d-flex align-items-center gap-2" style="border-radius: 8px;">
+                    <i class="bi bi-download"></i> Export Database
+                </a>
+                <form action="{{ url_for('admin.database_backup_manual') }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-outline-info px-3 py-2 fw-semibold d-flex align-items-center gap-2" style="border-radius: 8px;">
+                        <i class="bi bi-clock-history"></i> Trigger Manual Backup
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Tables Record Statistics -->
+        <div class="col-xl-7">
+            <div class="glass-card p-4 h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-grid-3x3-gap text-gradient-primary fs-4"></i>
+                    <h5 class="fw-bold mb-0">Active Database Record Breakdown</h5>
+                </div>
+                <p class="text-secondary small mb-4">Inspect live record counts across all core application tables to confirm persistence.</p>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover table-borderless align-middle mb-0" style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; overflow: hidden;">
+                        <thead>
+                            <tr class="text-muted small" style="border-bottom: 2px solid rgba(255, 255, 255, 0.05);">
+                                <th class="p-3">Model Object</th>
+                                <th class="p-3">Physical SQLite Table</th>
+                                <th class="p-3 text-end">Record Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tc in table_counts %}
+                            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                                <td class="p-3 fw-semibold text-white">{{ tc.name }}</td>
+                                <td class="p-3"><span class="badge bg-secondary-light text-muted font-monospace">{{ tc.table }}</span></td>
+                                <td class="p-3 text-end fw-bold text-gradient-primary fs-5">{{ tc.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Restore Portal -->
+        <div class="col-xl-5">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-cloud-upload text-danger fs-4"></i>
+                        <h5 class="fw-bold mb-0">Database Import & Restore</h5>
+                    </div>
+                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning mb-4" style="border-radius: 12px;">
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                        <strong>CRITICAL WARNING:</strong> Uploading and importing a database file will overwrite all current system data, user accounts, assessments, and preferences. 
+                    </div>
+                    <p class="text-secondary small">
+                        A backup copy of your current active database will be created automatically in <code>database/backups/</code> before restoration is performed. Only uploaded SQLite files (<code>.db</code>) with correct schemas are permitted.
+                    </p>
+                </div>
+                <form action="{{ url_for('admin.database_import') }}" method="POST" enctype="multipart/form-data" class="mt-4">
+                    <div class="mb-4">
+                        <label for="database_file" class="form-label text-muted small fw-semibold">Select SQLite Database File (.db)</label>
+                        <input class="form-control bg-dark border-secondary text-white" type="file" id="database_file" name="database_file" accept=".db" required style="border-radius: 8px;">
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" style="border-radius: 8px;" onclick="return confirm('Are you absolutely sure you want to replace the active database? This will restart active connections and log you out.');">
+                        <i class="bi bi-arrow-repeat"></i> Upload & Overwrite Active Database
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Backups List -->
+    <div class="glass-card p-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history text-gradient-primary fs-4"></i>
+                <h5 class="fw-bold mb-0">Database Backups Archive</h5>
+            </div>
+            <span class="badge bg-primary bg-opacity-10 text-primary">{{ backups|length }} Backup Files</span>
+        </div>
+        <p class="text-secondary small mb-4">Daily automated and manually triggered backups archived in <code>database/backups/</code>. Backups can be downloaded or purged to manage disk space.</p>
+        
+        {% if backups %}
+        <div class="table-responsive">
+            <table class="table table-dark table-hover table-borderless align-middle mb-0" style="background: rgba(0, 0, 0, 0.2); border-radius: 12px; overflow: hidden;">
+                <thead>
+                    <tr class="text-muted small" style="border-bottom: 2px solid rgba(255, 255, 255, 0.05);">
+                        <th class="p-3">Backup Filename</th>
+                        <th class="p-3">File Size</th>
+                        <th class="p-3">Creation Date</th>
+                        <th class="p-3 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for backup in backups %}
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.03);">
+                        <td class="p-3 font-monospace text-info"><i class="bi bi-file-earmark-zip me-2 text-muted"></i>{{ backup.filename }}</td>
+                        <td class="p-3 text-white">{{ backup.size_kb }} KB</td>
+                        <td class="p-3 text-secondary">{{ backup.modified }}</td>
+                        <td class="p-3 text-end d-flex gap-2 justify-content-end">
+                            <a href="{{ url_for('admin.database_backup_download', filename=backup.filename) }}" class="btn btn-outline-light btn-sm px-3" style="border-radius: 6px;">
+                                <i class="bi bi-download me-1"></i> Download
+                            </a>
+                            <form action="{{ url_for('admin.database_backup_delete', filename=backup.filename) }}" method="POST" class="d-inline" onsubmit="return confirm('Permanently delete this backup file?');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm px-3" style="border-radius: 6px;">
+                                    <i class="bi bi-trash-fill"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 bg-dark bg-opacity-20" style="border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.08);">
+            <i class="bi bi-archive-fill text-muted fs-2 mb-2 d-block"></i>
+            <span class="text-secondary small">No archived backups found. Backups will appear here once triggered manually or automatically.</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

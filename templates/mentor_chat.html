@@ -1,0 +1,654 @@
+{% extends "base.html" %}
+
+{% block title %}HireWise Mentor - Placement Chat Coach{% endblock %}
+
+{% block styles %}
+<!-- Highlight.js for Code Highlighting -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<style>
+    .chat-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 1.5rem;
+        height: calc(100vh - 120px);
+        min-height: 500px;
+    }
+
+    .chat-sidebar {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: hidden;
+    }
+
+    .session-list-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .session-item {
+        display: block;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .session-item:hover {
+        background: rgba(99, 102, 241, 0.08);
+        color: var(--primary);
+        border-color: rgba(99, 102, 241, 0.15);
+    }
+
+    .session-item.active {
+        background: var(--primary-light);
+        color: var(--primary);
+        border-color: rgba(99, 102, 241, 0.25);
+        font-weight: 600;
+    }
+
+    .chat-main {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        backdrop-filter: var(--glass-blur);
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .chat-messages-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .message-bubble {
+        max-width: 80%;
+        padding: 0.85rem 1.2rem;
+        border-radius: 16px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        word-wrap: break-word;
+    }
+
+    .message-bubble.user {
+        align-self: flex-end;
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: white;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+    }
+
+    .message-bubble.ai {
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text-primary);
+        border-bottom-left-radius: 4px;
+        border: 1px solid var(--border-color);
+    }
+
+    .chat-input-container {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        width: fit-content;
+        align-self: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+
+    .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    @keyframes typingBounce {
+
+        0%,
+        80%,
+        100% {
+            transform: scale(0);
+        }
+
+        40% {
+            transform: scale(1);
+        }
+    }
+
+    /* Code block container adjustment inside AI response */
+    .message-bubble pre {
+        background: #1e1e2f !important;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        overflow-x: auto;
+    }
+
+    .message-bubble code {
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 0.88rem;
+    }
+
+    .recording-active {
+        animation: pulseRed 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulseRed {
+        0% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        }
+    }
+
+    .typing-cursor {
+        display: inline-block;
+        width: 8px;
+        color: var(--primary);
+        animation: blink-cursor 0.7s infinite;
+        margin-left: 4px;
+        font-weight: bold;
+    }
+
+    @keyframes blink-cursor {
+
+        0%,
+        100% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center gap-3">
+                <div class="p-3 bg-primary-light text-primary rounded-3">
+                    <i class="bi bi-chat-left-dots fs-4"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block mb-0">CS Practice Chats</small>
+                    <span class="fs-4 fw-bold" id="stats-practice-count">{{ practice_count }} sessions</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center gap-3">
+                <div class="p-3 bg-success-light text-success rounded-3">
+                    <i class="bi bi-award fs-4"></i>
+                </div>
+                <div>
+                    <small class="text-muted d-block mb-0">Avg Practice Score</small>
+                    <span class="fs-4 fw-bold" id="stats-avg-score">{{ avg_score }}%</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="glass-card p-3 h-100 d-flex align-items-center justify-content-between">
+                <div>
+                    <span
+                        class="badge bg-{{ 'success' if has_resume else 'warning' }}-light text-{{ 'success' if has_resume else 'warning' }} mb-1 px-3 py-1">
+                        <i class="bi bi-file-earmark-check-fill me-1"></i> {{ 'Resume Linked' if has_resume else 'No
+                        Resume Uploaded' }}
+                    </span>
+                    <p class="text-secondary small mb-0">
+                        {{ 'Questions will automatically tailor to your skills & projects.' if has_resume else 'Upload
+                        your PDF resume to unlock personalized practice questions.' }}
+                    </p>
+                </div>
+                {% if not has_resume %}
+                <a href="{{ url_for('resume.upload') }}" class="btn btn-outline-warning btn-sm"
+                    style="border-radius: 8px;">Upload Resume</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat Workspace -->
+    <div class="chat-layout">
+        <!-- Sidebar Panel -->
+        <div class="chat-sidebar">
+            <button
+                class="btn btn-primary w-100 mb-3 py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#newSessionModal" style="border-radius: 10px;">
+                <i class="bi bi-plus-circle-fill"></i> New Session
+            </button>
+
+            <h6 class="text-muted small uppercase fw-bold mb-2 px-1">Recent Chats</h6>
+            <div class="session-list-container">
+                {% if sessions %}
+                {% for sess in sessions %}
+                <a href="{{ url_for('mentor.chat', session_id=sess.id) }}"
+                    class="session-item {% if active_session and active_session.id == sess.id %}active{% endif %}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-truncate fw-semibold" style="max-width: 170px;">{{ sess.title }}</span>
+                        <span class="badge bg-secondary-light text-muted" style="font-size: 0.7rem;">{{
+                            sess.mode.replace('practice_', '').upper() }}</span>
+                    </div>
+                    <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">{{ sess.created_at.strftime('%b
+                        %d, %H:%M') }}</small>
+                </a>
+                {% endfor %}
+                {% else %}
+                <div class="text-center p-3 text-muted small">No active chat sessions.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Conversational Room -->
+        <div class="chat-main">
+            {% if active_session %}
+            <!-- Chat Header -->
+            <div class="chat-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0 text-gradient-primary d-inline-block">{{ active_session.title }}</h5>
+                    <span class="badge bg-primary-light text-primary ms-2 px-2.5 py-1" style="font-size: 0.75rem;">
+                        Mode: {{ active_session.mode.replace('_', ' ').title() }}
+                    </span>
+                </div>
+                <form action="{{ url_for('mentor.delete_session', session_id=active_session.id) }}" method="POST"
+                    onsubmit="return confirm('Are you sure you want to delete this session and its logs?');">
+                    <button type="submit" class="btn btn-link text-danger p-0" title="Delete Session">
+                        <i class="bi bi-trash3-fill fs-5"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Messages container -->
+            <div class="chat-messages-container" id="chat-messages">
+                {% for msg in messages %}
+                <div class="message-bubble {{ 'user' if msg.sender == 'user' else 'ai' }}"
+                    data-raw-content="{{ msg.content }}">
+                    {{ msg.content }}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Typing indicator -->
+            <div class="px-4 d-none" id="typing-container">
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+
+            <!-- Chat Bottom input area -->
+            <div class="chat-input-container">
+                <div class="input-group gap-2">
+                    <button
+                        class="btn btn-outline-primary px-3 d-flex align-items-center justify-content-center gap-1.5"
+                        id="mic-btn" style="border-radius: 10px;">
+                        <i class="bi bi-mic-fill"></i> Speak
+                    </button>
+                    <input type="text"
+                        class="form-control bg-white bg-opacity-10 border border-opacity-10 py-3 text-white px-3"
+                        id="chat-input-text" placeholder="Type your response or click the mic to speak..."
+                        style="border-radius: 10px; color: var(--text-primary) !important;">
+                    <button class="btn btn-primary px-4 fw-bold" id="send-btn" style="border-radius: 10px;">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+                <div class="text-center mt-1.5">
+                    <small class="text-muted" style="font-size: 0.72rem;" id="provider-badge">
+                        Conversation powered by Groq - Llama 3.3 70B
+                    </small>
+                </div>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-5">
+                <i class="bi bi-chat-quote-fill display-3 text-muted mb-3"></i>
+                <h4 class="fw-bold mb-2">Initiate HireWise Mentor</h4>
+                <p class="text-secondary small mb-4" style="max-width: 400px;">
+                    Start a mock HR, Technical, or Behavioral dialogue session, or ask general CS coding queries.
+                </p>
+                <button class="btn btn-primary px-4 py-2.5 fw-bold" data-bs-toggle="modal"
+                    data-bs-target="#newSessionModal" style="border-radius: 10px;">
+                    Create First Chat Session
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- New Session Configuration Modal -->
+<div class="modal fade" id="newSessionModal" tabindex="-1" aria-labelledby="newSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border border-opacity-10"
+            style="border-radius: 16px; backdrop-filter: blur(20px);">
+            <div class="modal-header border-bottom border-opacity-10">
+                <h5 class="modal-title fw-bold" id="newSessionModalLabel">Configure Mentor Session</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('mentor.new_session') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="session-title" class="form-label small text-muted text-uppercase fw-bold">Session
+                            Name / Target Company</label>
+                        <input type="text" class="form-control bg-white bg-opacity-10 border-0 text-white py-2"
+                            id="session-title" name="title" placeholder="e.g. Amazon Prep, OOP Revision" required
+                            style="border-radius: 8px;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="session-mode" class="form-label small text-muted text-uppercase fw-bold">Interviewer
+                            Mode</label>
+                        <select class="form-select bg-white bg-opacity-10 border-0 text-white py-2" id="session-mode"
+                            name="mode" style="border-radius: 8px; color: #fff; background-color: #1e1e2f;">
+                            <option value="chat" style="background-color: #1e1e2f;">General Chat & Career Advice
+                            </option>
+                            <option value="practice_hr" style="background-color: #1e1e2f;">HR Mock Interview Practice
+                            </option>
+                            <option value="practice_tech" style="background-color: #1e1e2f;">Technical Mock Interview
+                                (DSA, DBMS, SQL)</option>
+                            <option value="practice_behav" style="background-color: #1e1e2f;">Behavioral Interview Room
+                            </option>
+                            <option value="practice_company" style="background-color: #1e1e2f;">Target Company Interview
+                                (Configure in Name)</option>
+                            <option value="learning" style="background-color: #1e1e2f;">Interactive CS Tutoring (Code
+                                doubts, DSA)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-opacity-10">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal"
+                        style="border-radius: 8px;">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-3" style="border-radius: 8px;">Initialize
+                        Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Markdown Parser CDN -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Code Highlighter CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Setup Markdown parsing configs
+        marked.setOptions({
+            highlight: function (code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-'
+        });
+
+        // Render markdown for all loaded bubbles on startup
+        const bubbles = document.querySelectorAll('.message-bubble.ai');
+        bubbles.forEach(b => {
+            const rawContent = b.getAttribute('data-raw-content') || b.textContent.trim();
+            b.innerHTML = marked.parse(rawContent);
+        });
+
+        // Auto Scroll to bottom
+        const scrollToBottom = () => {
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        };
+        scrollToBottom();
+
+        {% if active_session %}
+        const activeSessionId = {{ active_session.id | tojson }};
+        const sendBtn = document.getElementById('send-btn');
+    const inputField = document.getElementById('chat-input-text');
+    const typingContainer = document.getElementById('typing-container');
+    const providerBadge = document.getElementById('provider-badge');
+    // Function to update the provider status badge dynamically
+    const updateProviderBadge = (provider) => {
+        let label = "Local Practice Mode";
+        if (provider === 'gemini') {
+            label = "Gemini 2.5 Flash";
+        } else if (provider === 'claude') {
+            label = "Claude";
+        } else if (provider === 'groq') {
+            label = "Groq - Llama 3.3 70B";
+        }
+        providerBadge.textContent = "Conversation powered by " + label;
+    };
+
+    // Fetch and display the active provider on page load
+    const fetchActiveProvider = async () => {
+        try {
+            const res = await fetch('/api/chat/provider');
+            const data = await res.json();
+            if (data && data.provider) {
+                updateProviderBadge(data.provider);
+            }
+        } catch (err) {
+            console.error("Error fetching active provider:", err);
+        }
+    };
+    fetchActiveProvider();
+
+    // Streaming/typing animation effect for AI messages
+    const typeMessage = (element, rawText, callback) => {
+        let index = 0;
+        element.innerHTML = '<span class="typing-cursor">▋</span>';
+
+        // Disable inputs during typing to avoid race conditions
+        inputField.disabled = true;
+        sendBtn.disabled = true;
+
+        const speed = 10; // ms per typing step
+        const stepSize = 4; // type 4 characters at a time for optimal pace
+
+        function type() {
+            if (index < rawText.length) {
+                index += stepSize;
+                if (index > rawText.length) index = rawText.length;
+
+                const partialText = rawText.substring(0, index);
+                element.innerHTML = marked.parse(partialText) + '<span class="typing-cursor">▋</span>';
+
+                scrollToBottom();
+                setTimeout(type, speed);
+            } else {
+                element.innerHTML = marked.parse(rawText);
+
+                // Highlight code blocks
+                element.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+
+                // Re-enable input and focus
+                inputField.disabled = false;
+                sendBtn.disabled = false;
+                inputField.focus();
+
+                scrollToBottom();
+                if (callback) callback();
+            }
+        }
+        type();
+    };
+
+    // Send Message flow
+    const processSendMessage = async () => {
+        const text = inputField.value.trim();
+        if (!text) return;
+
+        // Add User message bubble immediately
+        inputField.value = '';
+        const userBubble = document.createElement('div');
+        userBubble.className = 'message-bubble user';
+        userBubble.textContent = text;
+        chatMessages.appendChild(userBubble);
+        scrollToBottom();
+
+        // Show Typing Indicator
+        typingContainer.classList.remove('d-none');
+        scrollToBottom();
+
+        try {
+            const response = await fetch('/mentor/message/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: activeSessionId,
+                    content: text
+                })
+            });
+            const data = await response.json();
+
+            // Hide Typing Indicator
+            typingContainer.classList.add('d-none');
+
+            if (data.success) {
+                // Add AI reply bubble with streaming typing effect
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'message-bubble ai';
+                chatMessages.appendChild(aiBubble);
+
+                // Call typing animator
+                typeMessage(aiBubble, data.reply, () => {
+                    // Update active provider badge dynamically after typing finishes
+                    updateProviderBadge(data.provider);
+                });
+            } else {
+                alert("Error sending message: " + data.error);
+            }
+        } catch (err) {
+            typingContainer.classList.add('d-none');
+            console.error(err);
+            alert("Connection error occurred.");
+        }
+    };
+
+    sendBtn.addEventListener('click', processSendMessage);
+    inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            processSendMessage();
+        }
+    });
+
+    // Voice Recorder Setup
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    const micBtn = document.getElementById('mic-btn');
+
+    micBtn.addEventListener('click', async () => {
+        if (!isRecording) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'voice.webm');
+
+                    inputField.placeholder = "Transcribing voice...";
+                    inputField.disabled = true;
+                    micBtn.disabled = true;
+
+                    try {
+                        const res = await fetch('/mentor/voice_transcribe', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (data.success && data.transcript) {
+                            inputField.value = data.transcript;
+                            // Auto trigger send after successful voice transcription
+                            processSendMessage();
+                        } else {
+                            alert("Speech recognition fallback failed: " + (data.error || "No speech detected. Please speak closer to your mic."));
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert("Error uploading or transcribing audio file.");
+                    } finally {
+                        inputField.placeholder = "Type your response or click the mic to speak...";
+                        inputField.disabled = false;
+                        micBtn.disabled = false;
+                        inputField.focus();
+                    }
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                micBtn.classList.remove('btn-outline-primary');
+                micBtn.classList.add('btn-danger', 'recording-active');
+                micBtn.innerHTML = '<i class="bi bi-stop-fill"></i> Stop';
+            } catch (err) {
+                console.error(err);
+                alert("Microphone capture failed. Check browser and system preferences.");
+            }
+        } else {
+            mediaRecorder.stop();
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            isRecording = false;
+            micBtn.classList.remove('btn-danger', 'recording-active');
+            micBtn.classList.add('btn-outline-primary');
+            micBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Speak';
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "admin_base.html" %}
+
+{% block title %}User Management - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">User Directory</h2>
+            <p class="text-secondary small">Activate, suspend, delete, or inspect detailed candidate metrics and profiles</p>
+        </div>
+    </div>
+
+    <!-- Filters and Search panel -->
+    <div class="glass-card mb-4 p-3">
+        <form action="{{ url_for('admin.users_list') }}" method="GET" class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-radius: 10px 0 0 10px; border-color: var(--border-color);">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control form-control-custom border-start-0" 
+                           id="search" 
+                           name="search" 
+                           value="{{ search }}" 
+                           placeholder="Search by name, username, or email..."
+                           style="border-radius: 0 10px 10px 0;">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select bg-dark text-white border-0 py-2.5 px-3" name="status" style="border-radius: 10px; border: 1px solid var(--border-color) !important;">
+                    <option value="">All Statuses</option>
+                    <option value="active" {{ 'selected' if status == 'active' else '' }}>Active Accounts</option>
+                    <option value="suspended" {{ 'selected' if status == 'suspended' else '' }}>Suspended Accounts</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold" style="border-radius: 10px;">
+                    Apply Filters
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ url_for('admin.users_list') }}" class="btn btn-outline-secondary w-100 py-2.5 fw-semibold" style="border-radius: 10px;">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Grid/Table -->
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important;">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Candidate</th>
+                        <th>Email</th>
+                        <th>Skill Level</th>
+                        <th class="text-center">Interviews</th>
+                        <th class="text-center">Avg Score</th>
+                        <th class="text-center">Resume</th>
+                        <th>Last Login</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if pagination.items %}
+                        {% for u in pagination.items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if u.profile_photo and u.profile_photo != 'default_profile.png' %}
+                                        <img src="{{ url_for('serve_upload', filename=u.profile_photo) }}" alt="Avatar" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover;">
+                                    {% else %}
+                                        <i class="bi bi-person-circle fs-4 text-secondary"></i>
+                                    {% endif %}
+                                    <div>
+                                        <span class="fw-semibold text-white d-block">{{ u.full_name or u.username }}</span>
+                                        <small class="text-secondary" style="font-size: 0.75rem;">@{{ u.username }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="small text-secondary">{{ u.email }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if u.skill_level == 'Advanced' else ('primary' if u.skill_level == 'Intermediate' else 'secondary') }}-light text-{{ 'danger' if u.skill_level == 'Advanced' else ('primary' if u.skill_level == 'Intermediate' else 'secondary') }}">
+                                    {{ u.skill_level }}
+                                </span>
+                            </td>
+                            <td class="text-center fw-bold text-gradient-primary">{{ u.total_interviews or 0 }}</td>
+                            <td class="text-center fw-semibold text-success">{{ u.average_score or '0.0' }}%</td>
+                            <td class="text-center">
+                                {% if u.resumes.first() %}
+                                    <span class="text-warning" title="Resume uploaded"><i class="bi bi-file-earmark-check-fill fs-5"></i></span>
+                                {% else %}
+                                    <span class="text-secondary" title="No resume uploaded"><i class="bi bi-file-earmark-x fs-5"></i></span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-secondary">
+                                {{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'Never' }}
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <!-- View Report Card / Analytics -->
+                                    <a href="{{ url_for('admin.user_analytics', user_id=u.id) }}" class="btn btn-sm btn-outline-primary" style="border-radius: 8px;" title="View Report Card">
+                                        <i class="bi bi-bar-chart-line-fill"></i> View Profile
+                                    </a>
+
+                                    <!-- Suspend / Activate toggle button -->
+                                    <form action="{{ url_for('admin.toggle_user_status', user_id=u.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if u.is_active else 'success' }}" style="border-radius: 8px; width: 95px;" {{ 'disabled' if u.id == current_user.id else '' }}>
+                                            <i class="bi bi-{{ 'slash-circle' if u.is_active else 'check-circle' }} me-1"></i>
+                                            {{ 'Block' if u.is_active else 'Unblock' }}
+                                        </button>
+                                    </form>
+
+                                    <!-- Reset Password button -->
+                                    <form action="{{ url_for('admin.reset_user_password', user_id=u.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to reset password for user \'{{ u.username }}\' to a temporary password?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-info" style="border-radius: 8px;" title="Reset Password">
+                                            <i class="bi bi-key-fill"></i> Reset
+                                        </button>
+                                    </form>
+
+                                    <!-- Delete account button -->
+                                    <form action="{{ url_for('admin.delete_user', user_id=u.id) }}" method="POST" class="d-inline" onsubmit="return confirm('WARNING: Are you absolutely sure you want to permanently delete the user account \'{{ u.username }}\'? This action deletes all interview attempts, chat sessions, and is irreversible.');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" {{ 'disabled' if u.id == current_user.id else '' }} title="Delete Account">
+                                            <i class="bi bi-trash-fill"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center p-5 text-muted">
+                                <i class="bi bi-info-circle display-4 mb-3 d-block"></i>
+                                No user accounts matching the filters were found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination.pages > 1 %}
+        <nav class="d-flex justify-content-center mt-4">
+            <ul class="pagination pagination-sm gap-1 mb-0">
+                <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+                    <a class="page-link bg-dark text-white border-0" href="{{ url_for('admin.users_list', page=pagination.prev_num, search=search, status=status) }}" style="border-radius: 6px;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == pagination.page else '' }}">
+                            <a class="page-link border-0 {{ 'bg-primary text-white' if page_num == pagination.page else 'bg-dark text-white' }}" href="{{ url_for('admin.users_list', page=page_num, search=search, status=status) }}" style="border-radius: 6px;">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link bg-transparent border-0 text-muted">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+                    <a class="page-link bg-dark text-white border-0" href="{{ url_for('admin.users_list', page=pagination.next_num, search=search, status=status) }}" style="border-radius: 6px;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

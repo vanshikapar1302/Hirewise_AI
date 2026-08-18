@@ -1,0 +1,617 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Report Card - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 1000px; margin: 0 auto;">
+    <!-- Header Block -->
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-success-light text-success mb-2 px-3 py-1.5 fw-semibold" style="border-radius: 12px;">
+                <i class="bi bi-patch-check-fill me-1"></i> Assessment Completed
+            </span>
+            <h1 class="fw-bold mb-1">Performance Report Card</h1>
+            <p class="text-secondary mb-0">Review your structural scoring, eye-gaze attention, and filler word reports.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('dashboard.home') }}" class="btn btn-outline-secondary px-3 py-2 fw-semibold me-2" style="border-radius: 8px;">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('interview.select') }}" class="btn btn-primary px-3 py-2 fw-semibold" style="border-radius: 8px;">
+                Start Another Mock
+            </a>
+        </div>
+    </header>
+
+    {% if session.interview_type == 'Project' %}
+        {% set comp_map = session.get_competency_map() %}
+        {% set proj_inputs = comp_map.get('project_inputs', {}) %}
+        {% set proj_understand = comp_map.get('project_understanding', {}) %}
+        {% set proj_feedback = comp_map.get('project_feedback', {}) %}
+        {% set proj_scores = proj_feedback.get('scores', {}) %}
+
+        <!-- Overall Score Ring + Project Summary -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between mb-0">
+                    <div class="row align-items-center g-4">
+                        <div class="col-sm-4 text-center">
+                            <div class="score-circle-container mb-2">
+                                <div class="score-value" style="font-size: 2.5rem;">
+                                    {{ session.overall_score }}<span class="fs-6 text-muted">/100</span>
+                                    <span class="score-label">OVERALL</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-info text-white py-1.5 px-3 fw-bold mt-2" style="border-radius: 12px;">
+                                Project Mode
+                            </span>
+                        </div>
+                        <div class="col-sm-8">
+                            <h4 class="fw-bold mb-2">Project Understanding Review</h4>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6; text-align: justify;">
+                                {{ session.feedback_summary }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Details Card -->
+            <div class="col-lg-6">
+                <div class="glass-card h-100 mb-0">
+                    <h4 class="fw-bold mb-2"><i class="bi bi-diagram-3-fill text-primary me-1"></i> Project Architecture & Tech</h4>
+                    <div class="d-flex flex-column gap-2 small mt-3">
+                        <div>
+                            <span class="text-muted fw-bold">Title:</span> 
+                            <span class="text-secondary fw-semibold">{{ proj_understand.get('project_title', 'Project') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-muted fw-bold">Domain:</span> 
+                            <span class="badge bg-secondary text-white">{{ proj_understand.get('domain', 'General') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-muted fw-bold">Architecture:</span> 
+                            <span class="text-secondary">{{ proj_understand.get('architecture', 'Client-Server') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-muted fw-bold">Technologies:</span> 
+                            <span class="text-secondary">{{ proj_understand.get('technologies', []) | join(', ') }}</span>
+                        </div>
+                        {% if proj_understand.get('features') %}
+                        <div>
+                            <span class="text-muted fw-bold">Key Features:</span>
+                            <ul class="mb-0 mt-1 ps-3 text-secondary" style="font-size: 0.85rem;">
+                                {% for feat in proj_understand.get('features')[:3] %}
+                                <li>{{ feat }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7 Categories Score Breakdown -->
+        <div class="glass-card mb-4">
+            <h4 class="fw-bold mb-3"><i class="bi bi-ui-checks text-primary me-1"></i> Project Mock Scorecard</h4>
+            <p class="text-secondary small mb-4">Granular performance scorecard mapping project competency across core software engineering domains.</p>
+            <div class="row g-3">
+                {% for key, val in proj_scores.items() %}
+                <div class="col-md-3 col-sm-6">
+                    <div class="p-3 rounded border bg-white bg-opacity-10 text-center" style="border-color: var(--border-color) !important;">
+                        <small class="text-muted d-block text-uppercase mb-1" style="font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px;">{{ key.replace(' Score', '') }}</small>
+                        <div class="fs-4 fw-bold {% if val >= 75 %}text-success{% elif val >= 55 %}text-warning{% else %}text-danger{% endif %}">{{ val }}%</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Project strengths & weaknesses -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="glass-card h-100 border border-success border-opacity-25" style="background: rgba(25, 135, 84, 0.05);">
+                    <h5 class="fw-bold text-success"><i class="bi bi-patch-check-fill me-1"></i> Key Presentation Strengths</h5>
+                    <ul class="mb-0 mt-3 small text-secondary ps-3">
+                        {% for str in proj_feedback.get('strengths', []) %}
+                            <li class="mb-2">{{ str }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="glass-card h-100 border border-danger border-opacity-25" style="background: rgba(220, 53, 69, 0.05);">
+                    <h5 class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Presentation Gaps & Weaknesses</h5>
+                    <ul class="mb-0 mt-3 small text-secondary ps-3">
+                        {% for weak in proj_feedback.get('weaknesses', []) %}
+                            <li class="mb-2">{{ weak }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap -->
+        <div class="glass-card mb-4">
+            <h4 class="fw-bold mb-3"><i class="bi bi-map-fill text-warning me-1"></i> Actionable Roadmap & Presentation Tips</h4>
+            <div class="row g-4 mt-1">
+                <div class="col-md-4">
+                    <h5 class="fw-bold text-gradient-primary h6 mb-2"><i class="bi bi-gear-wide-connected me-1"></i> Suggested Enhancements</h5>
+                    <ul class="small text-secondary ps-3">
+                        {% for imp in proj_feedback.get('improvements', []) %}
+                            <li class="mb-2">{{ imp }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-md-4 border-start" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="fw-bold text-gradient-primary h6 mb-2"><i class="bi bi-book-half me-1"></i> Recommended Topics to Revise</h5>
+                    <ul class="small text-secondary ps-3">
+                        {% for topic in proj_feedback.get('revision_topics', []) %}
+                            <li class="mb-2">{{ topic }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="col-md-4 border-start" style="border-color: rgba(255,255,255,0.08) !important;">
+                    <h5 class="fw-bold text-gradient-primary h6 mb-2"><i class="bi bi-award-fill me-1"></i> Recruiter Presentation Tips</h5>
+                    <ul class="small text-secondary ps-3">
+                        {% for tip in proj_feedback.get('presentation_tips', []) %}
+                            <li class="mb-2">{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Overall Assessment & Skills Visualization -->
+        <div class="row g-4 mb-4">
+            <!-- Main score summary ring & explanation -->
+            <div class="col-lg-6">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between mb-0">
+                    <div class="row align-items-center g-4">
+                        <div class="col-sm-4 text-center">
+                            <div class="score-circle-container mb-2">
+                                <div class="score-value" style="font-size: 2.5rem;">
+                                    {{ session.overall_score }}<span class="fs-6 text-muted">/100</span>
+                                    <span class="score-label">OVERALL</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-primary-light text-primary py-1.5 px-3 fw-bold mt-2" style="border-radius: 12px;">
+                                {{ session.interview_type }} Mode
+                            </span>
+                        </div>
+                        
+                        <div class="col-sm-8">
+                            <h4 class="fw-bold mb-2">AI Assessment Review</h4>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6; text-align: justify;">
+                                {{ session.feedback_summary }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top mt-4 pt-3 row text-center g-2">
+                        <div class="col-4">
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">COMMUNICATION</small>
+                            <span class="fw-bold {% if session.communication_score >= 75 %}text-success{% elif session.communication_score >= 55 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ session.communication_score }}%
+                            </span>
+                        </div>
+                        <div class="col-4 border-start">
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">TECHNICAL KNOWLEDGE</small>
+                            <span class="fw-bold {% if session.technical_score >= 75 %}text-success{% elif session.technical_score >= 55 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ session.technical_score }}%
+                            </span>
+                        </div>
+                        <div class="col-4 border-start">
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">CONFIDENCE & FOCUS</small>
+                            <span class="fw-bold {% if session.confidence_score >= 75 %}text-success{% elif session.confidence_score >= 55 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ session.confidence_score }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Competency Radar Chart Card -->
+            <div class="col-lg-6">
+                <div class="glass-card h-100 mb-0">
+                    <h4 class="fw-bold mb-3">Skill Competency Analysis</h4>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="feedbackRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actionable Recommendations list -->
+        <div class="glass-card mb-4">
+            <h4 class="fw-bold mb-3"><i class="bi bi-lightbulb-fill text-warning me-1"></i>Improvement Plan & Actionable Recommendations</h4>
+            <p class="text-muted small mb-3">Actionable preparation steps compiled based on your mock session performance metrics:</p>
+            
+            <div class="row g-3">
+                {% if recommendations %}
+                    {% for rec in recommendations %}
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white bg-opacity-10 border h-100 d-flex align-items-start gap-3" style="border-color: var(--border-color) !important; font-size: 0.95rem;">
+                                <i class="bi bi-arrow-right-circle-fill text-primary mt-1 flex-shrink-0"></i>
+                                <span class="text-secondary">{{ rec }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="p-3 border rounded text-muted small">
+                            No immediate recommendations compiled. Keep up the good performance!
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if session.experiment_mode != 'fixed' %}
+        <!-- Research Boundary Map & Heatmap -->
+        <div class="glass-card mb-4">
+            <h4 class="fw-bold mb-3"><i class="bi bi-diagram-3-fill text-primary me-1"></i> Technical Competency Boundaries</h4>
+            <p class="text-secondary small mb-4">
+                Real-time competency bounds derived from recursive question response profiles (EMA tracking).
+            </p>
+
+            <div class="row g-4">
+                {% set comp_map = session.get_competency_map() %}
+                {% if comp_map %}
+                    {% for skill_name, data in comp_map.items() %}
+                        {% if skill_name not in ['resume_inflation_analysis', 'multimodal_convergence_telemetry', 'multimodal_convergence_analysis', 'project_inputs', 'project_understanding', 'project_feedback', 'project_all_question_ids'] %}
+                        <div class="col-md-4">
+                            <div class="p-3 rounded border h-100 bg-white bg-opacity-10" style="border-color: var(--border-color) !important;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="fw-bold h6 mb-0">{{ skill_name }}</h5>
+                                    {% if data.boundary == 'Knows' %}
+                                        <span class="badge bg-success text-white">Knows</span>
+                                    {% elif data.boundary == 'Weak' %}
+                                        <span class="badge bg-warning text-dark">Weak</span>
+                                    {% else %}
+                                        <span class="badge bg-danger text-white">Does Not Know</span>
+                                    {% endif %}
+                                </div>
+                                <div class="fs-4 fw-bold mb-3 text-gradient-primary">{{ data.score | round(1) }}%</div>
+                                
+                                <!-- Subtopic breakdown -->
+                                <div class="border-top pt-2">
+                                    <small class="text-muted d-block mb-2">Subtopic Coverage:</small>
+                                    <div class="d-flex flex-column gap-2">
+                                        {% if data.subtopics %}
+                                            {% for subtopic, status in data.subtopics.items() %}
+                                                <div class="d-flex justify-content-between align-items-center small">
+                                                    <span class="text-secondary">{{ subtopic }}</span>
+                                                    {% if status == 'Knows' %}
+                                                        <span class="text-success fw-bold">● Knows</span>
+                                                    {% elif status == 'Weak' %}
+                                                        <span class="text-warning fw-bold">● Weak</span>
+                                                    {% else %}
+                                                        <span class="text-danger fw-bold">● Unknown</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted small italic">No subtopics assessed yet.</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-secondary small mb-0">No competency boundary map computed yet.</div>
+                    </div>
+                {% endif %}
+            </div>
+    {% endif %}
+{% endif %}
+
+    {% if session.experiment_mode != 'fixed' %}
+    <!-- Adaptive Log/Decision Walkthrough -->
+    <div class="glass-card mb-4">
+        <h4 class="fw-bold mb-3"><i class="bi bi-journal-text text-primary me-1"></i> Adaptive Engine Selection Decisions</h4>
+        <p class="text-secondary small mb-3">
+            Sequence of question selection operations executed by the adaptive orchestrator:
+        </p>
+        <div class="table-responsive rounded border" style="border-color: var(--border-color) !important;">
+            <table class="table table-hover table-custom m-0 align-middle small">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Idx</th>
+                        <th>Target Skill</th>
+                        <th>Target Difficulty</th>
+                        <th>Reasoning & Progression Rule</th>
+                        <th>Response Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set dec_log = session.get_decision_log() %}
+                    {% if dec_log %}
+                        {% for entry in dec_log %}
+                            <tr>
+                                <td class="fw-bold">{{ entry.question_index }}</td>
+                                <td><span class="badge bg-primary bg-opacity-75">{{ entry.target_skill }}</span></td>
+                                <td>
+                                    {% if entry.target_difficulty == 'Hard' %}
+                                        <span class="badge bg-danger">Hard</span>
+                                    {% elif entry.target_difficulty == 'Medium' %}
+                                        <span class="badge bg-warning text-dark">Medium</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Easy</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-secondary">{{ entry.reason }}</td>
+                                <td class="fw-bold">
+                                    {% if entry.last_score is not none %}
+                                        {{ entry.last_score | round(1) }}%
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No decisions logged.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Question-by-Question collapsible details -->
+    <h3 class="fw-bold mb-3">Question-by-Question Breakdown</h3>
+    <div class="d-flex flex-column gap-3 mb-5">
+        {% for r in responses %}
+            <div class="glass-card p-0 overflow-hidden" style="border-radius: 16px;">
+                <!-- Header trigger -->
+                <div class="p-3 bg-white bg-opacity-10 border-bottom d-flex justify-content-between align-items-center cursor-pointer collapsed" 
+                     data-bs-toggle="collapse" 
+                     data-bs-target="#response-collapse-{{ r.id }}" 
+                     style="cursor: pointer; border-color: var(--border-color) !important;">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-primary-light text-primary" style="border-radius: 8px; font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                            Q{{ loop.index }}
+                        </span>
+                        <h5 class="fw-bold h6 mb-0 text-truncate" style="max-width: 500px;">{{ r.question_text }}</h5>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="small text-muted d-none d-sm-inline">{{ r.duration | int }}s Duration</span>
+                        <span class="fw-bold px-2 py-1 bg-white bg-opacity-25 rounded" style="font-size: 0.9rem;">
+                            Score: {{ (r.answer_score / 10.0) | round(1) if session.experiment_mode != 'fixed' else ((r.relevance_score + r.clarity_score + r.completeness_score + r.structure_score + r.professionalism_score)/5) | round(1) }}/10
+                        </span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                </div>
+
+                <!-- Collapsible body -->
+                <div id="response-collapse-{{ r.id }}" class="collapse">
+                    <div class="p-4 bg-transparent">
+                        <!-- Upper grids: scores + speech parameters -->
+                        <div class="row g-4 mb-4">
+                            <!-- Detail evaluation columns -->
+                            <div class="col-md-7">
+                                <h6 class="fw-bold mb-3 small text-muted text-uppercase tracking-wider">Evaluation Rubric (Out of 10)</h6>
+                                <div class="row g-3">
+                                    {% if session.experiment_mode != 'fixed' %}
+                                    <div class="col-6">
+                                        <div class="small text-secondary mb-1">Technical Correctness</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ r.correctness_score * 10 }}%;" aria-valuenow="{{ r.correctness_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.correctness_score }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="small text-secondary mb-1">Concept Depth</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-dark" role="progressbar" style="width: {{ r.depth_score * 10 }}%;" aria-valuenow="{{ r.depth_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.depth_score }}</div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="col-6">
+                                        <div class="small text-secondary mb-1">Relevance</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ r.relevance_score * 10 }}%;" aria-valuenow="{{ r.relevance_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.relevance_score }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="small text-secondary mb-1">Clarity / Comm</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ r.clarity_score * 10 }}%;" aria-valuenow="{{ r.clarity_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.clarity_score }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="small text-secondary mb-1">Completeness</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ r.completeness_score * 10 }}%;" aria-valuenow="{{ r.completeness_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.completeness_score }}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="small text-secondary mb-1">Structure</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ r.structure_score * 10 }}%;" aria-valuenow="{{ r.structure_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.structure_score }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="small text-secondary mb-1">Professionalism</div>
+                                        <div class="progress" style="height: 8px; border-radius: 4px;">
+                                            <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ r.professionalism_score * 10 }}%;" aria-valuenow="{{ r.professionalism_score * 10 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small fw-bold text-end mt-1">{{ r.professionalism_score }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Speech properties columns -->
+                            <div class="col-md-5">
+                                <h6 class="fw-bold mb-3 small text-muted text-uppercase tracking-wider">Articulation & Eye Contact</h6>
+                                <div class="bg-white bg-opacity-10 p-3 rounded-3 border" style="border-color: var(--border-color) !important;">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                        <span class="small text-secondary"><i class="bi bi-speedometer me-1 text-primary"></i> Speaking Pace:</span>
+                                        <span class="fw-bold small">{{ r.wpm }} WPM</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                        <span class="small text-secondary"><i class="bi bi-eye me-1 text-success"></i> Camera Focus:</span>
+                                        <span class="fw-bold small">{{ r.eye_contact_score }}% eye contact</span>
+                                    </div>
+                                    <div>
+                                        <span class="small text-secondary d-block mb-1"><i class="bi bi-x-circle me-1 text-danger"></i> Filler Words (Total: {{ r.filler_count }}):</span>
+                                        <div class="d-flex flex-wrap">
+                                            {% if r.get_filler_words() %}
+                                                {% for word, count in r.get_filler_words().items() %}
+                                                    <span class="filler-bubble">
+                                                        <span>{{ word }}</span>
+                                                        <span class="bubble-count">{{ count }}</span>
+                                                    </span>
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-success small"><i class="bi bi-emoji-smile"></i> No filler words used!</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audio and Video reviews -->
+                        {% if r.audio_path or r.video_path %}
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-2 small text-muted text-uppercase tracking-wider">Review Captured Response Media</h6>
+                                <div class="row g-3">
+                                    {% if r.video_path %}
+                                        <div class="col-md-6">
+                                            <div class="p-2 border rounded bg-white bg-opacity-10 text-center">
+                                                <video src="/{{ r.video_path }}" controls class="w-100 rounded" style="max-height: 200px; background: #000;"></video>
+                                                <small class="text-muted d-block mt-1">Review Gaze & Body Language</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if r.audio_path %}
+                                        <div class="col-md-6 d-flex flex-column justify-content-center">
+                                            <div class="p-3 border rounded bg-white bg-opacity-10 text-center">
+                                                <audio src="/{{ r.audio_path }}" controls class="w-100 mb-2"></audio>
+                                                <small class="text-muted d-block">Listen to Articulation & Tone</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Full text transcripts -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-1 small text-muted text-uppercase tracking-wider">Transcribed Answer</h6>
+                            <blockquote class="p-3 bg-white bg-opacity-10 border rounded-3 text-secondary italic small" style="border-color: var(--border-color) !important; font-style: italic; line-height: 1.6;">
+                                "{{ r.transcript or '[No speech transcribed]' }}"
+                            </blockquote>
+                        </div>
+
+                        <!-- Feedback commentary -->
+                        <div>
+                            <h6 class="fw-bold mb-1 small text-muted text-uppercase tracking-wider">Detailed AI Feedback</h6>
+                            <p class="text-secondary small mb-0" style="line-height: 1.6;">
+                                {{ r.feedback }}
+                            </p>
+                        </div>
+                        
+                        <!-- If follow up question exists -->
+                        {% if r.follow_up_question %}
+                            <div class="mt-4 p-3 bg-danger-light border border-danger border-opacity-10 rounded-3">
+                                <h6 class="fw-bold text-danger mb-1 small text-uppercase tracking-wider">AI Interviewer Follow-Up Probed</h6>
+                                <p class="text-secondary small mb-0 font-monospace">
+                                    "{{ r.follow_up_question }}"
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .cursor-pointer i {
+        transition: transform 0.2s ease;
+    }
+    .cursor-pointer:not(.collapsed) i {
+        transform: rotate(180deg);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Determine chart colors based on active theme settings
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const labelColor = isDark ? '#cbd5e1' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+    
+    const ctx = document.getElementById('feedbackRadarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Communication', 'Technical', 'Answer Quality', 'Professionalism', 'Confidence'],
+            datasets: [{
+                label: 'Competency Profile',
+                data: [
+                    {{ session.communication_score }},
+                    {{ session.technical_score }},
+                    {{ session.answer_quality_score }},
+                    {{ session.professionalism_score }},
+                    {{ session.confidence_score }}
+                ],
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                borderWidth: 3,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#6366f1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                r: {
+                    angleLines: { color: gridColor },
+                    grid: { color: gridColor },
+                    pointLabels: {
+                        color: labelColor,
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 10, weight: '600' }
+                    },
+                    ticks: { display: false },
+                    min: 0,
+                    max: 100
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+
+

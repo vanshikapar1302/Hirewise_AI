@@ -1,0 +1,289 @@
+{% extends "admin_base.html" %}
+
+{% block title %}User Performance Card - {{ user.full_name or user.username }} - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Back Header -->
+    <div class="mb-4">
+        <a href="{{ url_for('admin.users_list') }}" class="btn btn-outline-secondary btn-sm mb-3" style="border-radius: 8px;">
+            <i class="bi bi-arrow-left me-1"></i> Back to User Directory
+        </a>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                {% if user.profile_photo and user.profile_photo != 'default_profile.png' %}
+                    <img src="{{ url_for('serve_upload', filename=user.profile_photo) }}" alt="Avatar" class="rounded-circle border border-primary border-3 shadow" style="width: 70px; height: 70px; object-fit: cover;">
+                {% else %}
+                    <i class="bi bi-person-circle display-4 text-secondary"></i>
+                {% endif %}
+                <div>
+                    <h2 class="fw-bold text-white mb-0">{{ user.full_name or user.username }}</h2>
+                    <span class="text-secondary small">@{{ user.username }} &bull; Member since {{ user.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+            </div>
+            <div>
+                <span class="badge bg-{{ 'success' if user.is_active else 'danger' }}-light text-{{ 'success' if user.is_active else 'danger' }} px-3 py-2.5 fw-semibold" style="border-radius: 12px; font-size: 0.95rem;">
+                    {{ 'Active Account' if user.is_active else 'Account Suspended' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid widgets -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Placement Tier</small>
+                    <span class="fs-4 fw-bold text-gradient-primary">{{ user.skill_level }}</span>
+                </div>
+                <div class="widget-icon bg-primary-light text-primary">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Average Score</small>
+                    <span class="fs-4 fw-bold text-success">{{ user.average_score or '0.0' }}%</span>
+                </div>
+                <div class="widget-icon bg-success-light text-success">
+                    <i class="bi bi-star-half"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Highest Score</small>
+                    <span class="fs-4 fw-bold text-info">{{ user.highest_score or '0.0' }}%</span>
+                </div>
+                <div class="widget-icon bg-info-light text-info">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Total Practice Time</small>
+                    <span class="fs-4 fw-bold text-white">{{ ((user.total_practice_time or 0) / 60)|round(1) }} min</span>
+                </div>
+                <div class="widget-icon bg-warning-light text-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid Content -->
+    <div class="row g-4 mb-4">
+        <!-- Resume Parsing Analysis -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="bi bi-file-earmark-person-fill text-gradient-primary me-2"></i>Resume Analysis & Skill Progress</h5>
+                {% if resumes %}
+                    {% set resume = resumes[0] %}
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Uploaded Resume File:</span>
+                        <a href="/uploads/{{ resume.filename }}" class="small fw-semibold text-decoration-none text-gradient-primary" target="_blank">
+                            <i class="bi bi-cloud-arrow-down-fill me-1"></i> {{ resume.filename }}
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">ATS Matching Score</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height: 10px; border-radius: 5px; background: rgba(255,255,255,0.05);">
+                                <div class="progress-bar bg-success" style="width: {{ resume.ats_score or 60 }}%;"></div>
+                            </div>
+                            <span class="fw-bold text-success">{{ resume.ats_score or 60 }}%</span>
+                        </div>
+                    </div>
+                    <hr class="opacity-10">
+                    <div class="mb-3">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Extracted Skillset</small>
+                        <p class="text-white small">{{ resume.skills_extracted or 'No skills matched' }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Missing placement Skills</small>
+                        <p class="text-warning small">{{ resume.missing_skills or 'None identified' }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Identified Projects</small>
+                        <p class="text-white small" style="max-height: 100px; overflow-y: auto;">{{ resume.projects or 'N/A' }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Professional Experience</small>
+                        <p class="text-white small" style="max-height: 100px; overflow-y: auto;">{{ resume.experience or 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Improvement Suggestions</small>
+                        <p class="text-secondary small">{{ resume.suggestions_generated or 'N/A' }}</p>
+                    </div>
+                {% else %}
+                    <div class="text-center p-5 text-secondary my-auto">
+                        <i class="bi bi-file-earmark-x display-4 mb-3 d-block"></i>
+                        No resume uploaded yet by this candidate.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Strong / Weak Areas and Timeline -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-check-circle-fill text-gradient-primary me-2"></i>Performance Areas</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-10" style="border-radius: 12px;">
+                                <small class="text-success fw-bold d-block mb-1"><i class="bi bi-plus-circle-fill me-1"></i>Strengths</small>
+                                <ul class="list-unstyled mb-0 text-secondary small">
+                                    {% for s in strong_areas %}
+                                        <li>&bull; {{ s }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-10" style="border-radius: 12px;">
+                                <small class="text-danger fw-bold d-block mb-1"><i class="bi bi-exclamation-circle-fill me-1"></i>Weaknesses</small>
+                                <ul class="list-unstyled mb-0 text-secondary small">
+                                    {% for w in weak_areas %}
+                                        <li>&bull; {{ w }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h5 class="fw-bold mb-3"><i class="bi bi-clock-history text-gradient-primary me-2"></i>Security Session Timeline</h5>
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-dark table-hover mb-0" style="background-color: transparent !important;">
+                            <thead>
+                                <tr class="text-muted small" style="font-size: 0.75rem;">
+                                    <th>Login Time</th>
+                                    <th>IP Address</th>
+                                    <th>User Agent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if sessions_logs %}
+                                    {% for s in sessions_logs %}
+                                    <tr style="font-size: 0.8rem;">
+                                        <td>{{ s.login_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td class="text-secondary">{{ s.ip_address or 'Localhost' }}</td>
+                                        <td class="text-secondary text-truncate" style="max-width: 140px;" title="{{ s.user_agent }}">{{ s.user_agent }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No session logs</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment History Grid -->
+    <div class="glass-card p-4 mb-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-mortarboard-fill text-gradient-primary me-2"></i>Placement Mock Assessment History</h5>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important;">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Session ID</th>
+                        <th>Type</th>
+                        <th>Target Company</th>
+                        <th>Role Applied</th>
+                        <th class="text-center">Duration</th>
+                        <th class="text-center">Score</th>
+                        <th class="text-center">Audit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if interviews %}
+                        {% for i in interviews %}
+                        <tr>
+                            <td class="fw-bold">#{{ i.id }}</td>
+                            <td>
+                                <span class="badge bg-primary-light text-primary">{{ i.interview_type }}</span>
+                            </td>
+                            <td class="small">{{ i.company_name or 'General Practice' }}</td>
+                            <td class="small">{{ i.role_applied or 'Software Engineer' }}</td>
+                            <td class="text-center small">{{ (i.duration/60)|round(1) }} min</td>
+                            <td class="text-center fw-bold text-success">{{ i.overall_score }}%</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('admin.interview_detail', session_id=i.id) }}" class="btn btn-sm btn-outline-success" style="border-radius: 8px;">
+                                    <i class="bi bi-eye-fill"></i> Inspect Dialog
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center p-4 text-secondary">
+                                No completed mock interviews recorded.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Chat sessions -->
+    <div class="glass-card p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-chat-left-dots-fill text-gradient-primary me-2"></i>Mentor Chat History</h5>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important;">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Session ID</th>
+                        <th>Title</th>
+                        <th>Category Mode</th>
+                        <th class="text-center">Messages</th>
+                        <th class="text-center">Estimated Duration</th>
+                        <th>Created At</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if mentor_sessions %}
+                        {% for s in mentor_sessions %}
+                        <tr>
+                            <td class="fw-bold">#{{ s.id }}</td>
+                            <td>{{ s.title }}</td>
+                            <td>
+                                <span class="badge bg-warning-light text-warning">{{ s.mode }}</span>
+                            </td>
+                            <td class="text-center">{{ s.num_messages or 0 }}</td>
+                            <td class="text-center">{{ ((s.duration or 0)/60)|round(1) }} min</td>
+                            <td class="small text-secondary">{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('admin.mentor_conversation_history', session_id=s.id) }}" class="btn btn-sm btn-outline-warning" style="border-radius: 8px;">
+                                    <i class="bi bi-chat-quote-fill"></i> View Conversation
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center p-4 text-secondary">
+                                No mentor sessions recorded.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

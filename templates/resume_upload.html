@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Parser Setup - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 800px; margin: 0 auto;">
+    <header class="mb-4 text-center">
+        <span class="badge bg-primary-light text-primary px-3 py-1.5 fw-semibold mb-2" style="border-radius: 12px;">
+            <i class="bi bi-file-earmark-lock-fill"></i> Resume-Based Mock Mode
+        </span>
+        <h1 class="fw-bold mb-1">Tailor Questions to Your Resume</h1>
+        <p class="text-secondary">Upload your resume. Our pipeline extracts projects and matches questions to your technical stack.</p>
+    </header>
+
+    <div class="row g-4">
+        <!-- Upload Form Pane -->
+        <div class="col-md-7">
+            <div class="glass-card h-100 p-4">
+                <form action="{{ url_for('resume.upload') }}" method="POST" enctype="multipart/form-data" id="resume-form">
+                    <div class="upload-drop-zone py-5 px-3 text-center border border-dashed rounded-4 mb-4" id="drop-zone" style="border-color: var(--border-color) !important; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="bi bi-cloud-arrow-up text-primary display-3 mb-3 d-block"></i>
+                        <h5 class="fw-bold" id="upload-filename">Choose Resume PDF</h5>
+                        <p class="text-muted small mb-0">Drag and drop your file here, or click to browse</p>
+                        <!-- Hidden actual file input -->
+                        <input type="file" name="resume" id="resume-input" accept=".pdf" style="display: none;" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold d-flex align-items-center justify-content-center gap-2" id="submit-btn" disabled style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none;">
+                        <i class="bi bi-file-earmark-check"></i> Parse Resume & Generate Mock
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Instructional / Step-by-Step Pane -->
+        <div class="col-md-5">
+            <div class="glass-card h-100 d-flex flex-column justify-content-between p-4">
+                <div>
+                    <h4 class="fw-bold mb-3">How it works</h4>
+                    
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num bg-primary-light text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0;">1</div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Upload PDF</h6>
+                            <p class="text-secondary small mb-0">Submit a standard, text-readable PDF resume.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num bg-success-light text-success fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0;">2</div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Extract Technologies</h6>
+                            <p class="text-secondary small mb-0">We parse final-year projects, experience milestones, and skills tags.</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="step-num bg-info-light text-info fw-bold rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0;">3</div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Generate Custom Questions</h6>
+                            <p class="text-secondary small mb-0">Gemini formulates 5 specialized, hard technical questions targeting your project details.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning border-0 py-2 px-3 small m-0" style="border-radius: 8px;">
+                    <i class="bi bi-info-circle-fill me-1"></i> Ensure the file is not a scanned photo-only PDF, or extraction will fail.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Progress Loader -->
+<div id="upload-loader" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center d-none" style="background-color: rgba(9, 13, 22, 0.88); z-index: 9999; backdrop-filter: blur(8px);">
+    <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem; border-width: 0.35em;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <h3 class="text-white fw-bold mt-4 mb-2">Ingesting Resume PDF</h3>
+    <p class="text-secondary text-center px-4" style="max-width: 450px;">
+        Extracting PDF text structures, mapping engineering projects, and generating customized mock interview queries using Gemini...
+    </p>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .upload-drop-zone:hover {
+        border-color: var(--primary) !important;
+        background-color: var(--primary-light);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('resume-input');
+    const fileNameDisplay = document.getElementById('upload-filename');
+    const submitBtn = document.getElementById('submit-btn');
+    const form = document.getElementById('resume-form');
+    const loader = document.getElementById('upload-loader');
+
+    // Trigger input on click
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // Handle drag events
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = 'var(--primary-light)';
+        dropZone.style.borderColor = 'var(--primary)';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.backgroundColor = '';
+        dropZone.style.borderColor = '';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '';
+        dropZone.style.borderColor = '';
+        
+        if (e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.type === 'application/pdf') {
+                fileInput.files = e.dataTransfer.files;
+                updateFileDisplay(file.name);
+            } else {
+                alert('Only PDF files are supported.');
+            }
+        }
+    });
+
+    // Handle standard input change
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            updateFileDisplay(fileInput.files[0].name);
+        }
+    });
+
+    function updateFileDisplay(name) {
+        fileNameDisplay.textContent = name;
+        submitBtn.disabled = false;
+        dropZone.style.borderColor = 'var(--success)';
+        dropZone.style.backgroundColor = 'var(--success-light)';
+    }
+
+    // Show parser loader on submit
+    form.addEventListener('submit', () => {
+        loader.classList.remove('d-none');
+    });
+});
+</script>
+{% endblock %}

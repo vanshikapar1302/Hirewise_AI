@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>HireWise Operations Alert</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #1e293b;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 3px solid {% if notification_type == 'error' %}#ef4444{% elif notification_type == 'high_score' %}#f59e0b{% else %}#6366f1{% endif %};
+        }
+        .header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .alert-badge {
+            display: inline-block;
+            background-color: {% if notification_type == 'error' %}rgba(239, 68, 68, 0.2){% elif notification_type == 'high_score' %}rgba(245, 158, 11, 0.2){% else %}rgba(99, 102, 241, 0.2){% endif %};
+            color: {% if notification_type == 'error' %}#f87171{% elif notification_type == 'high_score' %}#fbbf24{% else %}#818cf8{% endif %};
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .message-box {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            background-color: #0f172a;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            margin-bottom: 25px;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .details-table td {
+            padding: 10px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .label {
+            color: #94a3b8;
+            font-weight: 600;
+            width: 120px;
+        }
+        .value {
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #cbd5e1 !important;
+            text-decoration: none;
+            padding: 12px 25px;
+            font-weight: 700;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #475569;
+        }
+        .footer {
+            background-color: #0f172a;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #334155;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HireWise AI - Operations Alert</h1>
+        </div>
+        <div class="content">
+            <div class="alert-badge">
+                {{ notification_type.replace('_', ' ') }}
+            </div>
+            
+            <div class="message-box">
+                {{ message }}
+            </div>
+
+            <h2>Event Details</h2>
+            <table class="details-table">
+                <tr>
+                    <td class="label">Event Time:</td>
+                    <td class="value">{{ timestamp }}</td>
+                </tr>
+                {% if username %}
+                <tr>
+                    <td class="label">Triggered By:</td>
+                    <td class="value">@{{ username }}</td>
+                </tr>
+                {% endif %}
+                {% if extra_details %}
+                    {% for key, val in extra_details.items() %}
+                    <tr>
+                        <td class="label">{{ key }}:</td>
+                        <td class="value">{{ val }}</td>
+                    </tr>
+                    {% endfor %}
+                {% endif %}
+            </table>
+
+            <div style="text-align: center;">
+                <a href="{{ admin_url }}" class="btn">Open Operations Console</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is an automated system notification for HireWise Administrators.<br>&copy; 2026 HireWise AI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

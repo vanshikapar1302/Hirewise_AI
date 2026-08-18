@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to HireWise AI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #1e293b;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+        }
+        .header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin: 0 0 20px 0;
+        }
+        .features-grid {
+            margin: 30px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .feature-item {
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+        .feature-item h3 {
+            margin: 0 0 8px 0;
+            color: #818cf8;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .feature-item p {
+            margin: 0;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 14px 30px;
+            font-weight: 700;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+        .footer {
+            background-color: #0f172a;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #334155;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to HireWise AI</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{ name }}</strong>,</p>
+            <p>Your account has been successfully created! HireWise AI is your intelligent mock interview partner, designed to analyze, score, and evaluate your placement preparation levels with feedback.</p>
+            
+            <p>Here are the core modules available in your preparation panel:</p>
+            
+            <ul class="features-grid">
+                <li class="feature-item">
+                    <h3>🎯 Mock Interviews</h3>
+                    <p>Participate in full video-based mock assessments tailored to HR, technical, mixed, or company-specific preparation paths.</p>
+                </li>
+                <li class="feature-item">
+                    <h3>📄 Resume Parser</h3>
+                    <p>Upload your resume PDF to extract keywords, analyze ATS formatting quality, and generate custom questions from your background projects.</p>
+                </li>
+                <li class="feature-item">
+                    <h3>💬 HireWise Mentor</h3>
+                    <p>Engage in simulated live chats with virtual recruiters covering tutorial concepts, case problems, or career guidance advice.</p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 Analytics Dashboard</h3>
+                    <p>Monitor your performance reports, trace key scoring statistics, and target weak assessment metrics over time.</p>
+                </li>
+            </ul>
+
+            <div style="text-align: center;">
+                <a href="{{ dashboard_url }}" class="btn">Launch Prep Dashboard</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>This is a transactional message sent to you by HireWise AI Operations.<br>&copy; 2026 HireWise AI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

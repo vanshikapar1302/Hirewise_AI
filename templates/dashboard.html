@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header Block -->
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="fw-bold mb-1">Placement Analytics</h1>
+            <p class="text-secondary mb-0">Track your interview competencies, fluency metrics, and gaze logs.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('interview.select') }}" class="btn btn-primary px-4 py-2.5 fw-semibold d-inline-flex align-items-center gap-2" style="border-radius: 10px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none;">
+                <i class="bi bi-play-circle"></i> Start New Mock
+            </a>
+        </div>
+    </header>
+
+    {% if total_interviews == 0 %}
+        <!-- Empty State -->
+        <div class="glass-card text-center p-5 my-5" style="max-width: 600px; margin: 0 auto;">
+            <i class="bi bi-mortarboard text-muted display-1 mb-4"></i>
+            <h2 class="fw-bold mb-2">No Interview Records Found</h2>
+            <p class="text-secondary mb-4">
+                You haven't completed any mock interviews yet. Launch your first mock session (HR, Technical, or Company-specific) to build your performance profile.
+            </p>
+            <a href="{{ url_for('interview.select') }}" class="btn btn-primary px-4 py-3 fw-bold" style="border-radius: 12px;">
+                Take First Mock Interview
+            </a>
+        </div>
+    {% else %}
+        <!-- Widgets Row -->
+        <div class="row g-4 mb-4">
+            <!-- Overall Score Ring -->
+            <div class="col-md-3">
+                <div class="glass-card h-100 text-center d-flex flex-column justify-content-center p-3">
+                    <h6 class="text-muted small uppercase fw-bold mb-3">Overall Performance</h6>
+                    <div class="score-circle-container">
+                        <!-- Score inside Ring -->
+                        <div class="score-value">
+                            {{ avg_overall }}<span class="fs-6 text-muted">/100</span>
+                            <span class="score-label">Average</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Placement Readiness (ML prediction) -->
+            <div class="col-md-5">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="text-muted small uppercase fw-bold mb-0">Placement Readiness Status</h6>
+                            <span class="badge bg-{{ readiness_class }} badge-custom">{{ readiness_label }}</span>
+                        </div>
+                        <h4 class="fw-bold">Ready Assessment</h4>
+                        <p class="text-secondary small mb-0 mt-2" style="line-height: 1.6;">
+                            {{ readiness_desc }}
+                        </p>
+                    </div>
+                    <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Powered by Decision Tree ML Model</span>
+                        <i class="bi bi-cpu text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Stats -->
+            <div class="col-md-4">
+                <div class="row g-3 h-100">
+                    <div class="col-6">
+                        <div class="widget-card h-100">
+                            <div>
+                                <small class="text-muted d-block mb-1">Mocks Run</small>
+                                <span class="fs-3 fw-bold">{{ total_interviews }}</span>
+                            </div>
+                            <div class="widget-icon bg-primary-light text-primary">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="widget-card h-100">
+                            <div>
+                                <small class="text-muted d-block mb-1">Speaking Rate</small>
+                                <span class="fs-3 fw-bold">{{ avg_wpm }} <span class="fs-6 text-muted">WPM</span></span>
+                            </div>
+                            <div class="widget-icon bg-success-light text-success">
+                                <i class="bi bi-speedometer2"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="widget-card">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="widget-icon bg-danger-light text-danger">
+                                    <i class="bi bi-slash-circle"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block mb-0">Total Filler Words</small>
+                                    <span class="fs-4 fw-bold mb-0">{{ total_fillers }} common fillers used</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & Skills Classifications -->
+        <div class="row g-4 mb-4">
+            <!-- Chart.js Trend Line -->
+            <div class="col-lg-8">
+                <div class="glass-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">Performance Progression</h4>
+                        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Shows score evolution over last mock completions</span>
+                    </div>
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="progressionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weak Skill Detection Panel -->
+            <div class="col-lg-4">
+                <div class="glass-card h-100 d-flex flex-column">
+                    <h4 class="fw-bold mb-3">Skill Competencies</h4>
+                    <p class="text-muted small mb-3">Skill clusters classified based on mock performance averages.</p>
+                    
+                    <div class="flex-grow-1 overflow-auto pe-1" style="max-height: 300px;">
+                        <!-- Strong Skills -->
+                        <div class="mb-3">
+                            <span class="text-success small fw-bold d-block mb-2"><i class="bi bi-check-circle-fill me-1"></i>STRONG AREAS (>=75%)</span>
+                            {% if skills.strong %}
+                                {% for name, score in skills.strong %}
+                                    <div class="d-flex justify-content-between align-items-center mb-1 p-2 rounded bg-success-light" style="font-size: 0.9rem;">
+                                        <span>{{ name }}</span>
+                                        <span class="fw-bold">{{ score }}%</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted small d-block px-2">No areas classified as strong yet. Keep practicing.</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Moderate Skills -->
+                        <div class="mb-3">
+                            <span class="text-warning small fw-bold d-block mb-2"><i class="bi bi-exclamation-circle-fill me-1"></i>MODERATE (55% - 74%)</span>
+                            {% if skills.moderate %}
+                                {% for name, score in skills.moderate %}
+                                    <div class="d-flex justify-content-between align-items-center mb-1 p-2 rounded bg-warning-light" style="font-size: 0.9rem;">
+                                        <span>{{ name }}</span>
+                                        <span class="fw-bold">{{ score }}%</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted small d-block px-2">No moderate skill clusters recorded.</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Weak Skills -->
+                        <div>
+                            <span class="text-danger small fw-bold d-block mb-2"><i class="bi bi-x-circle-fill me-1"></i>WEAK AREAS (<55%)</span>
+                            {% if skills.weak %}
+                                {% for name, score in skills.weak %}
+                                    <div class="d-flex justify-content-between align-items-center mb-1 p-2 rounded bg-danger-light" style="font-size: 0.9rem;">
+                                        <span>{{ name }}</span>
+                                        <span class="fw-bold text-danger">{{ score }}%</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-success small d-block px-2"><i class="bi bi-emoji-smile"></i> Excellent! No major weak areas detected!</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attempts List -->
+        <div class="glass-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">Recent Attempts</h4>
+                <a href="{{ url_for('dashboard.history') }}" class="btn btn-outline-secondary btn-sm" style="border-radius: 8px;">View Full History</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Interview Mode</th>
+                            <th>Target Scope</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in recent_sessions %}
+                            <tr>
+                                <td class="fw-semibold">{{ s.created_at.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                                <td>
+                                    <span class="badge bg-primary-light text-primary border border-primary border-opacity-10">{{ s.interview_type }}</span>
+                                </td>
+                                <td>{{ s.company_name or 'General Mock' }}</td>
+                                <td>
+                                    <span class="fw-bold {% if s.overall_score >= 75 %}text-success{% elif s.overall_score >= 55 %}text-warning{% else %}text-danger{% endif %}">
+                                        {{ s.overall_score }}/100
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if s.status == 'completed' %}
+                                        <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Evaluated</span>
+                                    {% else %}
+                                        <span class="text-muted"><i class="bi bi-arrow-repeat me-1"></i>Unfinished</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if s.status == 'completed' %}
+                                        <a href="{{ url_for('interview.feedback_page', session_id=s.id) }}" class="btn btn-sm btn-primary py-1 px-3" style="border-radius: 6px;">
+                                            Report Card
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('interview.room', session_id=s.id) }}" class="btn btn-sm btn-outline-warning py-1 px-3" style="border-radius: 6px;">
+                                            Resume
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Fetch statistics progression data
+    fetch('/api/chart-data')
+        .then(res => res.json())
+        .then(data => {
+            if (data.labels && data.labels.length > 0) {
+                const ctx = document.getElementById('progressionChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [
+                            {
+                                label: 'Overall Score',
+                                data: data.overall,
+                                borderColor: '#6366f1',
+                                backgroundColor: 'rgba(99, 102, 241, 0.05)',
+                                fill: true,
+                                tension: 0.3,
+                                borderWidth: 3
+                            },
+                            {
+                                label: 'Communication Score',
+                                data: data.communication,
+                                borderColor: '#06b6d4',
+                                fill: false,
+                                tension: 0.3,
+                                borderWidth: 2,
+                                borderDash: [5, 5]
+                            },
+                            {
+                                label: 'Technical Score',
+                                data: data.technical,
+                                borderColor: '#10b981',
+                                fill: false,
+                                tension: 0.3,
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    font: { family: "'Plus Jakarta Sans', sans-serif" }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 100,
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => console.error("Error loading progression stats chart:", err));
+});
+</script>
+{% endblock %}

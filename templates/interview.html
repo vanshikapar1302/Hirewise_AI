@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Mock Interview Room - HireWise AI{% endblock %}
+
+{% block content %}
+<!-- Hidden metadata elements for JS -->
+<input type="hidden" id="meta-session-id" value="{{ session_id }}">
+<input type="hidden" id="meta-question-text" value="{{ question_text }}">
+<input type="hidden" id="meta-is-follow-up" value="{{ 'true' if is_follow_up else 'false' }}">
+<input type="hidden" id="meta-current-num" value="{{ current_num }}">
+<input type="hidden" id="meta-total-num" value="{{ total_num }}">
+
+<div class="container-fluid p-0" id="interview-room-container" style="max-width: 900px; margin: 0 auto; position: relative; transition: all 0.3s ease;">
+    <!-- Header Block -->
+    <header class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <div>
+                {% if is_follow_up %}
+                    <span class="badge bg-danger mb-2 px-3 py-1.5 fw-semibold" id="question-progress-badge" style="border-radius: 12px;">
+                        <i class="bi bi-robot me-1"></i> AI Follow-Up Question
+                    </span>
+                {% else %}
+                    <span class="badge bg-primary mb-2 px-3 py-1.5 fw-semibold" id="question-progress-badge" style="border-radius: 12px;">
+                        Progress: Question <span id="current-question-num">{{ current_num }}</span> of <span id="total-question-num">{{ total_num }}</span>
+                    </span>
+                {% endif %}
+                <div class="d-flex align-items-center gap-2">
+                    <h1 class="fw-bold h2 mb-0">Interview Room</h1>
+                    <button class="btn btn-sm btn-outline-secondary py-1 px-2 border-0 bg-dark bg-opacity-20" id="fullscreen-btn" style="border-radius: 8px;" title="Toggle Fullscreen Mode">
+                        <i class="bi bi-fullscreen" id="fullscreen-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Media & Connection Status + Timers Panel -->
+        <div class="d-flex align-items-center gap-3 bg-dark bg-opacity-25 p-2.5 border border-opacity-10" style="border-radius: 15px; backdrop-filter: blur(10px); border-color: var(--border-color) !important;">
+            <!-- Status Indicators -->
+            <div class="d-flex flex-column gap-1.5 small">
+                <span class="badge bg-success-light text-success" id="status-camera" style="border-radius: 6px; font-size: 0.72rem;"><i class="bi bi-camera-video-fill me-1"></i>Cam OK</span>
+                <span class="badge bg-success-light text-success" id="status-mic" style="border-radius: 6px; font-size: 0.72rem;"><i class="bi bi-mic-fill me-1"></i>Mic OK</span>
+                <span class="badge bg-success-light text-success" id="status-network" style="border-radius: 6px; font-size: 0.72rem;"><i class="bi bi-wifi me-1"></i>Online</span>
+            </div>
+            
+            <!-- Timers -->
+            <div class="border-start border-opacity-10 ps-3 text-end" style="min-width: 140px; border-color: rgba(255,255,255,0.1) !important;">
+                <div class="d-flex justify-content-between gap-3 text-secondary small">
+                    <span>Q-Timer:</span>
+                    <span class="fw-bold text-white" id="timer-display">00:00</span>
+                </div>
+                <div class="d-flex justify-content-between gap-3 text-secondary small mt-0.5">
+                    <span>Session:</span>
+                    <span class="fw-bold text-white" id="session-timer-display">00:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Always Visible Progress Bar -->
+    <div class="glass-card mb-4 p-3" style="border-radius: 15px;">
+        <div class="d-flex justify-content-between mb-1.5 small text-secondary">
+            <span class="fw-semibold"><i class="bi bi-hourglass-split me-1 text-primary"></i>Interview Progression</span>
+            <span id="overall-progress-text" class="fw-bold text-white">0%</span>
+        </div>
+        <div class="progress" style="height: 10px; border-radius: 5px; background-color: rgba(255,255,255,0.1);">
+            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" id="overall-progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+
+    <!-- Active Question Card -->
+    <div class="glass-card mb-4 bg-gradient-primary text-white border-0 py-4 px-4" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.15);">
+        <span class="text-white text-opacity-75 small uppercase tracking-wider fw-semibold mb-2 d-block">Current Question</span>
+        <h2 class="fw-bold h3 mb-0" id="question-text-heading" style="line-height: 1.5;">{{ question_text }}</h2>
+    </div>
+
+    <!-- Main Workspace (Video + Control columns + Live Dashboard) -->
+    <div class="row g-4 mb-4">
+        <!-- Left Column: Video Preview, speaking controls, and transcript -->
+        <div class="col-lg-8 col-md-12">
+            <div class="row g-4 mb-4">
+                <!-- Webcam Preview Pane -->
+                <div class="col-md-6 col-sm-12">
+                    <div class="glass-card p-3 h-100 d-flex flex-column justify-content-center">
+                        <div class="webcam-container">
+                            <video id="webcam-preview" class="webcam-feed" autoplay muted playsinline></video>
+                            <!-- Indicators overlay -->
+                            <div class="webcam-overlay">
+                                <span class="spinner-grow spinner-grow-sm text-danger" role="status" id="recording-dot" style="display: none;"></span>
+                                <i class="bi bi-camera-video-fill me-1"></i>
+                                <span>Webcam Feed</span>
+                            </div>
+                            <div class="gaze-status-indicator bg-secondary" id="gaze-indicator">
+                                CAMERA ACTIVE
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls Pane -->
+                <div class="col-md-6 col-sm-12">
+                    <div class="glass-card h-100 d-flex flex-column justify-content-between p-4">
+                        <div>
+                            <h4 class="fw-bold mb-2">Speak Your Answer</h4>
+                            <p class="text-secondary small mb-3">
+                                Click "Start Recording" and articulate your answer. Maintain eye contact with the camera and speak clearly.
+                            </p>
+                            
+                            <div class="alert alert-secondary py-2 px-3 small border-0 text-center" id="recording-status" style="border-radius: 8px;">
+                                Initializing Camera stream...
+                            </div>
+
+                            <!-- Voice Animation wave bars -->
+                            <div class="speech-wave-container">
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                                <div class="wave-bar"></div>
+                            </div>
+                        </div>
+
+                        <!-- Record Buttons Group -->
+                        <div class="d-flex flex-column gap-2 mt-4">
+                            <button class="btn btn-primary py-3 fw-bold d-flex align-items-center justify-content-center gap-2" id="start-rec-btn" disabled style="border-radius: 10px;">
+                                <i class="bi bi-mic-fill"></i> Start Recording
+                            </button>
+                            <button class="btn btn-danger py-3 fw-bold d-none align-items-center justify-content-center gap-2" id="stop-rec-btn" style="border-radius: 10px;">
+                                <i class="bi bi-stop-circle-fill"></i> Stop Recording
+                            </button>
+                            <button class="btn btn-success py-3 fw-bold d-flex align-items-center justify-content-center gap-2" id="submit-ans-btn" disabled style="border-radius: 10px;">
+                                <i class="bi bi-cloud-arrow-up-fill"></i> Submit Answer <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transcript panel -->
+            <div class="glass-card p-3">
+                <h5 class="fw-bold mb-2 small text-muted text-uppercase tracking-wider">Speech Transcription Feedback</h5>
+                <div class="p-3 bg-white bg-opacity-10 border rounded-3 text-secondary" id="transcript-text" style="min-height: 80px; max-height: 150px; overflow-y: auto; border-color: var(--border-color) !important; font-size: 0.92rem; line-height: 1.6;">
+                    <strong>Transcript:</strong> <em>[Speech transcript will display here in real-time as you speak...]</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Live Adaptive Dashboard -->
+        <div class="col-lg-4 col-md-12">
+            <div class="glass-card p-4 h-100" id="live-dashboard-card" style="display: {% if is_adaptive %}block{% else %}none{% endif %};">
+                <h4 class="fw-bold mb-3"><i class="bi bi-cpu-fill text-primary me-1"></i> Adaptive Engine</h4>
+                <p class="text-secondary small mb-3">Real-time competency assessment telemetry</p>
+                
+                <!-- Competency Level & Difficulty Badges -->
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <small class="text-muted d-block small mb-1">Competency Level</small>
+                        <span class="badge bg-warning text-dark px-3 py-1.5 fw-semibold" id="dash-competency-level" style="border-radius: 8px;">Intermediate</span>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block small mb-1">Difficulty Mode</small>
+                        <span class="badge bg-warning text-dark px-3 py-1.5 fw-semibold" id="dash-difficulty" style="border-radius: 8px;">Medium</span>
+                    </div>
+                </div>
+
+                <!-- Completion Progress Bar (Dashboard version) -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1 small text-secondary">
+                        <span>Interview Progression</span>
+                        <span id="dash-progress-text">0% Complete</span>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 4px; background-color: rgba(255,255,255,0.1);">
+                        <div class="progress-bar bg-info" id="dash-progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <!-- Skill Progress Bars -->
+                <div class="mb-4">
+                    <small class="text-muted d-block mb-2 uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Skill Competency (EMA)</small>
+                    <div id="dash-skills-bars" class="d-flex flex-column gap-3">
+                        <!-- Filled in dynamically -->
+                    </div>
+                </div>
+
+                <!-- Radar Chart -->
+                <div class="mb-4 text-center">
+                    <small class="text-muted d-block mb-2 uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Visual Competency Map</small>
+                    <div style="max-height: 220px; position: relative;">
+                        <canvas id="liveRadarChart" style="max-height: 220px;"></canvas>
+                    </div>
+                </div>
+
+                <!-- Weak Skills Alert -->
+                <div>
+                    <small class="text-muted d-block mb-1 uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Weak Skill Indicators</small>
+                    <ul class="list-group list-group-flush" id="dash-weak-skills">
+                        <!-- Filled in dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Evaluation Fullscreen Overlay -->
+<div id="spinner-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center d-none" style="background-color: rgba(9, 13, 22, 0.88); z-index: 9999; backdrop-filter: blur(8px);">
+    <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem; border-width: 0.35em;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <h3 class="text-white fw-bold mt-4 mb-2">Analyzing Response</h3>
+    <p class="text-secondary text-center px-4" style="max-width: 450px;">
+        Transcribing answer using OpenAI Whisper, measuring vertical/horizontal head gaze coordinates, and processing grading metrics via Gemini API...
+    </p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js and dynamic JSON states bootstrapping -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.isAdaptive = {{ 'true' if is_adaptive else 'false' }};
+    window.initialSkillStates = {{ skill_states_json | safe if skill_states_json else '{}' }};
+</script>
+
+<!-- Core Interview JS -->
+<script src="{{ url_for('static', filename='js/interview.js') }}"></script>
+<script>
+// Additional minor adjustments for visual recording dot indicator
+document.getElementById('start-rec-btn').addEventListener('click', () => {
+    document.getElementById('recording-dot').style.display = 'inline-block';
+});
+document.getElementById('stop-rec-btn').addEventListener('click', () => {
+    document.getElementById('recording-dot').style.display = 'none';
+});
+</script>
+{% endblock %}

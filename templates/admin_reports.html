@@ -1,0 +1,155 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Reports Hub - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">Platform Reports Hub</h2>
+            <p class="text-secondary small">Generate and export platform operation metrics in standardized formats (CSV and Microsoft Excel)</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Users database report -->
+        <div class="col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-people-fill text-gradient-primary fs-3"></i>
+                        <h5 class="fw-bold mb-0">User Statistics Report</h5>
+                    </div>
+                    <p class="text-secondary small">
+                        Compiles all registered student accounts, emails, roles, current account statuses (Active/Suspended), and creation timestamps.
+                    </p>
+                    <div class="mb-4">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Export Fields Included</small>
+                        <span class="badge bg-secondary-light text-muted small">User ID</span>
+                        <span class="badge bg-secondary-light text-muted small">Username</span>
+                        <span class="badge bg-secondary-light text-muted small">Email</span>
+                        <span class="badge bg-secondary-light text-muted small">Role</span>
+                        <span class="badge bg-secondary-light text-muted small">Status</span>
+                        <span class="badge bg-secondary-light text-muted small">Created At</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.export_report', report_type='users', format_type='csv') }}" class="btn btn-primary flex-grow-1 py-2 fw-semibold" style="border-radius: 8px;">
+                        <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                    </a>
+                    <a href="{{ url_for('admin.export_report', report_type='users', format_type='excel') }}" class="btn btn-outline-success px-3" style="border-radius: 8px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                    </a>
+                    <a href="{{ url_for('admin.print_report', report_type='users') }}" target="_blank" class="btn btn-outline-danger px-3" style="border-radius: 8px;" title="Export PDF">
+                        <i class="bi bi-file-pdf-fill"></i> PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interview reports -->
+        <div class="col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-journal-code text-gradient-primary fs-3"></i>
+                        <h5 class="fw-bold mb-0">Interview Metrics Report</h5>
+                    </div>
+                    <p class="text-secondary small">
+                        Compiles completed student mock interviews, selected company targets (e.g. Amazon, Google), overall scores, and evaluation splits.
+                    </p>
+                    <div class="mb-4">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Export Fields Included</small>
+                        <span class="badge bg-secondary-light text-muted small">Interview ID</span>
+                        <span class="badge bg-secondary-light text-muted small">Username</span>
+                        <span class="badge bg-secondary-light text-muted small">Type</span>
+                        <span class="badge bg-secondary-light text-muted small">Company</span>
+                        <span class="badge bg-secondary-light text-muted small">Overall Score</span>
+                        <span class="badge bg-secondary-light text-muted small">Technical</span>
+                        <span class="badge bg-secondary-light text-muted small">Communication</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.export_report', report_type='interviews', format_type='csv') }}" class="btn btn-primary flex-grow-1 py-2 fw-semibold" style="border-radius: 8px;">
+                        <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                    </a>
+                    <a href="{{ url_for('admin.export_report', report_type='interviews', format_type='excel') }}" class="btn btn-outline-success px-3" style="border-radius: 8px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                    </a>
+                    <a href="{{ url_for('admin.print_report', report_type='interviews') }}" target="_blank" class="btn btn-outline-danger px-3" style="border-radius: 8px;" title="Export PDF">
+                        <i class="bi bi-file-pdf-fill"></i> PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Mentor activity reports -->
+        <div class="col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-chat-left-text-fill text-gradient-primary fs-3"></i>
+                        <h5 class="fw-bold mb-0">AI Mentor Interaction Report</h5>
+                    </div>
+                    <p class="text-secondary small">
+                        Tracks mentorship engagement, mapping user chats, topic fields (DSA, DBMS, OS), user responses, and local agent scoring metrics.
+                    </p>
+                    <div class="mb-4">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Export Fields Included</small>
+                        <span class="badge bg-secondary-light text-muted small">Practice ID</span>
+                        <span class="badge bg-secondary-light text-muted small">Username</span>
+                        <span class="badge bg-secondary-light text-muted small">Topic</span>
+                        <span class="badge bg-secondary-light text-muted small">Question</span>
+                        <span class="badge bg-secondary-light text-muted small">Answer</span>
+                        <span class="badge bg-secondary-light text-muted small">Score</span>
+                        <span class="badge bg-secondary-light text-muted small">Date</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.export_report', report_type='mentor', format_type='csv') }}" class="btn btn-primary flex-grow-1 py-2 fw-semibold" style="border-radius: 8px;">
+                        <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                    </a>
+                    <a href="{{ url_for('admin.export_report', report_type='mentor', format_type='excel') }}" class="btn btn-outline-success px-3" style="border-radius: 8px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                    </a>
+                    <a href="{{ url_for('admin.print_report', report_type='mentor') }}" target="_blank" class="btn btn-outline-danger px-3" style="border-radius: 8px;" title="Export PDF">
+                        <i class="bi bi-file-pdf-fill"></i> PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- System health diagnostics report -->
+        <div class="col-md-6">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="bi bi-cpu-fill text-gradient-primary fs-3"></i>
+                        <h5 class="fw-bold mb-0">API & Service Health Report</h5>
+                    </div>
+                    <p class="text-secondary small">
+                        Details of all external Gemini and Claude api calls, capturing server latencies, status codes, and API success rates.
+                    </p>
+                    <div class="mb-4">
+                        <small class="text-muted d-block uppercase fw-bold mb-1">Export Fields Included</small>
+                        <span class="badge bg-secondary-light text-muted small">Log ID</span>
+                        <span class="badge bg-secondary-light text-muted small">Provider</span>
+                        <span class="badge bg-secondary-light text-muted small">Endpoint</span>
+                        <span class="badge bg-secondary-light text-muted small">Latency (sec)</span>
+                        <span class="badge bg-secondary-light text-muted small">Status Code</span>
+                        <span class="badge bg-secondary-light text-muted small">Is Success</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.export_report', report_type='api_health', format_type='csv') }}" class="btn btn-primary flex-grow-1 py-2 fw-semibold" style="border-radius: 8px;">
+                        <i class="bi bi-filetype-csv me-1"></i> Export CSV
+                    </a>
+                    <a href="{{ url_for('admin.export_report', report_type='api_health', format_type='excel') }}" class="btn btn-outline-success px-3" style="border-radius: 8px;" title="Export Excel">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Research Benchmarking - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">Adaptive Questioning Research Portal</h2>
+            <p class="text-secondary small">Compare adaptive progression testing against fixed benchmarks for placement competency assessment papers.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.generate_research_graphs') }}" class="btn btn-outline-success fw-semibold px-3 py-2" style="border-radius: 8px;">
+                <i class="bi bi-arrow-repeat me-1"></i> Regenerate Research Graphs
+            </a>
+            <a href="{{ url_for('admin.export_research_experiment') }}" class="btn btn-outline-primary fw-semibold px-3 py-2" style="border-radius: 8px;">
+                <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Export Trials (CSV)
+            </a>
+            <a href="{{ url_for('admin.export_research_detailed') }}" class="btn btn-primary fw-semibold px-3 py-2" style="border-radius: 8px;">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Detailed Logs (CSV)
+            </a>
+        </div>
+    </div>
+
+    <!-- Heuristic Research Stats summary grid -->
+    <div class="row g-4 mb-4">
+        <!-- Total Sessions -->
+        <div class="col-md-4">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Total Adaptive Trials</small>
+                    <span class="fs-2 fw-bold text-white">{{ total_adaptive }}</span>
+                    <small class="text-muted d-block mt-1">Sufficient sample size</small>
+                </div>
+                <div class="widget-icon bg-primary-light text-primary">
+                    <i class="bi bi-cpu-fill"></i>
+                </div>
+            </div>
+        </div>
+        <!-- MAE -->
+        <div class="col-md-4">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Mean Absolute Error (MAE)</small>
+                    <span class="fs-2 fw-bold text-warning">{{ mae }}</span>
+                    <small class="text-muted d-block mt-1">Adaptive vs. Fixed Baseline</small>
+                </div>
+                <div class="widget-icon bg-warning-light text-warning">
+                    <i class="bi bi-graph-down"></i>
+                </div>
+            </div>
+        </div>
+        <!-- RMSE -->
+        <div class="col-md-4">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Root Mean Squared Error (RMSE)</small>
+                    <span class="fs-2 fw-bold text-danger">{{ rmse }}</span>
+                    <small class="text-muted d-block mt-1">Variance penalizing score error</small>
+                </div>
+                <div class="widget-icon bg-danger-light text-danger">
+                    <i class="bi bi-calculator"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparative Diagrams & Precision/Recall -->
+    <div class="row g-4 mb-4">
+        <!-- Classification Metrics Card -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h4 class="fw-bold mb-3"><i class="bi bi-check-circle-fill text-success me-1"></i> Classification Accuracy Profile</h4>
+                <p class="text-secondary small mb-4">Manual confusion-matrix precision, recall, and F-measure compared against standard 5-question fixed interviews.</p>
+                
+                <div class="d-flex flex-column gap-3">
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-semibold text-secondary">Model Precision</span>
+                            <span class="small fw-bold text-success">{{ precision }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ precision }}%;" aria-valuenow="{{ precision }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-semibold text-secondary">Model Recall (Sensitivity)</span>
+                            <span class="small fw-bold text-info">{{ recall }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ recall }}%;" aria-valuenow="{{ recall }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-semibold text-secondary">F1 Harmonic Score</span>
+                            <span class="small fw-bold text-primary">{{ f1_score }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px; border-radius: 5px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ f1_score }}%;" aria-valuenow="{{ f1_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Convergence questions count comparison card -->
+        <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+                <h4 class="fw-bold mb-3"><i class="bi bi-clock-history text-info me-1"></i> Efficiency & Convergence</h4>
+                <p class="text-secondary small mb-4">Average number of questions required to finalize competency boundaries compared to baseline unimodal fixed queries.</p>
+                
+                <div style="height: 180px; position: relative;">
+                    <canvas id="researchBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Competency Distribution Grid -->
+    <div class="glass-card p-4 mb-4">
+        <h4 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap-fill text-primary me-1"></i> Boundary Distribution Breakdown</h4>
+        <p class="text-secondary small mb-4">Aggregated counts of Knows, Weak, and Unknown bounds assessed for candidates across the primary coding skill categories.</p>
+
+        <div class="row g-4">
+            {% for skill, bounds in boundary_counts.items() %}
+                <div class="col-md-4">
+                    <div class="p-3 border rounded bg-white bg-opacity-10" style="border-color: var(--border-color) !important;">
+                        <h5 class="fw-bold h6 mb-3 text-gradient-primary">{{ skill }} Assessment Counts</h5>
+                        <div class="d-flex flex-column gap-2 small">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary"><i class="bi bi-check-circle text-success me-1"></i> Knows (&ge;80%):</span>
+                                <span class="fw-bold text-white fs-6">{{ bounds.Knows }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary"><i class="bi bi-exclamation-triangle text-warning me-1"></i> Weak (50-80%):</span>
+                                <span class="fw-bold text-white fs-6">{{ bounds.Weak }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-secondary"><i class="bi bi-x-circle text-danger me-1"></i> Unknown (&lt;50%):</span>
+                                <span class="fw-bold text-white fs-6">{{ bounds.Does_Not_Know }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Adaptive Trials Logs Table -->
+    <div class="glass-card p-4">
+        <h4 class="fw-bold mb-3"><i class="bi bi-journal-text me-1 text-primary"></i> Adaptive Trials Log (Recent Entries)</h4>
+        <div class="table-responsive rounded border" style="border-color: var(--border-color) !important;">
+            <table class="table table-hover table-custom m-0 align-middle small">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Trial ID</th>
+                        <th>Candidate</th>
+                        <th>Applied Role</th>
+                        <th>Experiment Mode</th>
+                        <th>Overall Score</th>
+                        <th>Tech / Comm / Conf</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if sessions %}
+                        {% for s in sessions %}
+                            <tr>
+                                <td class="fw-bold">{{ s.id }}</td>
+                                <td>{{ s.user.username if s.user else 'Deleted User' }}</td>
+                                <td>{{ s.role_applied }}</td>
+                                <td>
+                                    {% if s.experiment_mode == 'adaptive_gemini' %}
+                                        <span class="badge bg-primary">LLM Gemini</span>
+                                    {% elif s.experiment_mode == 'adaptive_rule' %}
+                                        <span class="badge bg-warning text-dark">Rule-Based</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ s.experiment_mode }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ s.overall_score }}%</td>
+                                <td>{{ s.technical_score }}% / {{ s.communication_score }}% / {{ s.confidence_score }}%</td>
+                                <td class="text-secondary">{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-secondary py-3">No adaptive trials recorded yet. Start a Rule-Based or LLM-Based Adaptive interview to generate trial logs.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Research Graphs Visualization -->
+    <div class="glass-card p-4 mb-4 mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold mb-0"><i class="bi bi-graph-up text-primary me-1"></i> Generated Evaluation Graphs</h4>
+            <span class="text-secondary small">PNG plots generated automatically from raw trial progression states</span>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 border rounded bg-white bg-opacity-5 h-100" style="border-color: var(--border-color) !important;">
+                    <h5 class="small fw-bold text-center mb-2 text-white">MAE Convergence Profile</h5>
+                    <img src="{{ url_for('static', filename='research_results/mae_convergence_graph.png') }}" class="img-fluid rounded border border-secondary" style="opacity: 0.9;" alt="MAE Convergence Graph" onerror="this.src='https://placehold.co/600x400?text=No+Graph+Generated+Yet'">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 border rounded bg-white bg-opacity-5 h-100" style="border-color: var(--border-color) !important;">
+                    <h5 class="small fw-bold text-center mb-2 text-white">RMSE Convergence Profile</h5>
+                    <img src="{{ url_for('static', filename='research_results/rmse_convergence_graph.png') }}" class="img-fluid rounded border border-secondary" style="opacity: 0.9;" alt="RMSE Convergence Graph" onerror="this.src='https://placehold.co/600x400?text=No+Graph+Generated+Yet'">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 border rounded bg-white bg-opacity-5 h-100" style="border-color: var(--border-color) !important;">
+                    <h5 class="small fw-bold text-center mb-2 text-white">Skill Score Progression (EMA)</h5>
+                    <img src="{{ url_for('static', filename='research_results/skill_progression_graph.png') }}" class="img-fluid rounded border border-secondary" style="opacity: 0.9;" alt="Skill Progression Graph" onerror="this.src='https://placehold.co/600x400?text=No+Graph+Generated+Yet'">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 border rounded bg-white bg-opacity-5 h-100" style="border-color: var(--border-color) !important;">
+                    <h5 class="small fw-bold text-center mb-2 text-white">Question Difficulty Transitions</h5>
+                    <img src="{{ url_for('static', filename='research_results/difficulty_transition_graph.png') }}" class="img-fluid rounded border border-secondary" style="opacity: 0.9;" alt="Difficulty Transition Graph" onerror="this.src='https://placehold.co/600x400?text=No+Graph+Generated+Yet'">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 border rounded bg-white bg-opacity-5 h-100" style="border-color: var(--border-color) !important;">
+                    <h5 class="small fw-bold text-center mb-2 text-white">Competency Distributions Profile</h5>
+                    <img src="{{ url_for('static', filename='research_results/competency_distribution_graph.png') }}" class="img-fluid rounded border border-secondary" style="opacity: 0.9;" alt="Competency Profile" onerror="this.src='https://placehold.co/600x400?text=No+Graph+Generated+Yet'">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="p-3 border rounded bg-white bg-opacity-5 h-100" style="border-color: var(--border-color) !important;">
+                    <h5 class="small fw-bold text-center mb-2 text-white">Interview Completion Telemetry</h5>
+                    <img src="{{ url_for('static', filename='research_results/interview_completion_statistics.png') }}" class="img-fluid rounded border border-secondary" style="opacity: 0.9;" alt="Completion Statistics" onerror="this.src='https://placehold.co/600x400?text=No+Graph+Generated+Yet'">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const labelColor = isDark ? '#cbd5e1' : '#475569';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+    
+    // Bar chart comparison for Convergence Questions
+    const ctx = document.getElementById('researchBarChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Adaptive Progression', 'Fixed Questions'],
+            datasets: [{
+                data: [{{ avg_qs_adaptive }}, {{ avg_qs_fixed }}],
+                backgroundColor: ['#6366f1', '#94a3b8'],
+                borderRadius: 8,
+                barThickness: 50
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: labelColor, font: { weight: '600' } }
+                },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { color: labelColor, stepSize: 1 },
+                    min: 0,
+                    max: 6
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends "admin_base.html" %}
+
+{% block title %}System Analytics - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">Platform Analytics</h2>
+            <p class="text-secondary small">Aggregated metrics detailing placement trends, assessment scoring, and skills distribution</p>
+        </div>
+    </div>
+
+    <!-- Overview Stats cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Total Assessments</small>
+                    <span class="fs-2 fw-bold text-white">{{ total_interviews }}</span>
+                </div>
+                <div class="widget-icon bg-primary-light text-primary">
+                    <i class="bi bi-journal-code"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Avg Score</small>
+                    <span class="fs-2 fw-bold text-success">{{ avg_score }}%</span>
+                </div>
+                <div class="widget-icon bg-success-light text-success">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Highest Score</small>
+                    <span class="fs-2 fw-bold text-info">{{ highest_score }}%</span>
+                </div>
+                <div class="widget-icon bg-info-light text-info">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Mentor Conversations</small>
+                    <span class="fs-2 fw-bold text-white">{{ mentor_sessions }}</span>
+                </div>
+                <div class="widget-icon bg-warning-light text-warning">
+                    <i class="bi bi-chat-dots-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid Row 1 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Target Placement Companies</h5>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="companyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Mentor Practice Topics</h5>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="topicChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid Row 2 -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Communication & Gaze Score Distribution</h5>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3">Top Resume Skills Extracted</h5>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Harmonious colors palette
+    const colors = {
+        primary: '#6366f1',
+        success: '#10b981',
+        warning: '#f59e0b',
+        danger: '#ef4444',
+        info: '#3b82f6',
+        bg: 'rgba(255, 255, 255, 0.05)',
+        text: '#9ca3af'
+    };
+
+    // Global Font Settings
+    Chart.defaults.color = colors.text;
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // 1. Target Companies Chart (Bar Chart)
+    const companyData = {{ companies|tojson }};
+    const companyLabels = companyData.map(c => c.company);
+    const companyCounts = companyData.map(c => c.count);
+
+    new Chart(document.getElementById('companyChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: companyLabels.length > 0 ? companyLabels : ['No Data'],
+            datasets: [{
+                label: 'Interviews Conducted',
+                data: companyCounts.length > 0 ? companyCounts : [0],
+                backgroundColor: 'rgba(99, 102, 241, 0.75)',
+                borderColor: colors.primary,
+                borderWidth: 1,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 2. Topics Distribution (Doughnut Chart)
+    const topicData = {{ topics|tojson }};
+    const topicLabels = topicData.map(t => t.topic);
+    const topicCounts = topicData.map(t => t.count);
+
+    new Chart(document.getElementById('topicChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: topicLabels.length > 0 ? topicLabels : ['No Data'],
+            datasets: [{
+                data: topicCounts.length > 0 ? topicCounts : [1],
+                backgroundColor: [
+                    'rgba(99, 102, 241, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(139, 92, 246, 0.8)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' }
+            }
+        }
+    });
+
+    // 3. Performance Metrics Radar Chart
+    new Chart(document.getElementById('metricsChart').getContext('2d'), {
+        type: 'radar',
+        data: {
+            labels: ['Communication', 'Technical', 'Confidence & Eye Contact', 'AI Gaze attention'],
+            datasets: [{
+                label: 'Average Scores',
+                data: [{{ comm_score }}, {{ tech_score }}, {{ conf_score }}, {{ eye_score }}],
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: colors.success,
+                pointBackgroundColor: colors.success,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255,255,255,0.05)' },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    pointLabels: { color: '#ffffff' },
+                    ticks: { color: colors.text, backdropColor: 'transparent' },
+                    suggestedMin: 30,
+                    suggestedMax: 100
+                }
+            }
+        }
+    });
+
+    // 4. Skills Extracted (Horizontal Bar Chart)
+    const skillsData = {{ skills|tojson }};
+    const skillsLabels = skillsData.map(s => s.skill);
+    const skillsCounts = skillsData.map(s => s.count);
+
+    new Chart(document.getElementById('skillsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: skillsLabels.length > 0 ? skillsLabels : ['No Data'],
+            datasets: [{
+                label: 'Skills Frequency',
+                data: skillsCounts.length > 0 ? skillsCounts : [0],
+                backgroundColor: 'rgba(245, 158, 11, 0.75)',
+                borderColor: colors.warning,
+                borderWidth: 1,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

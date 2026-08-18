@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HireWise Admin - Central Operations{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom Style System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Admin Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="{{ url_for('admin.dashboard') }}" class="brand-section">
+                <div class="brand-logo bg-danger">A</div>
+                <span class="brand-name text-danger">HireWise Admin</span>
+            </a>
+            
+            <nav class="flex-grow-1">
+                <ul class="nav-menu">
+                    <li>
+                        <a href="{{ url_for('admin.dashboard') }}" class="nav-item-link {{ 'active' if request.path == '/admin/dashboard' else '' }}">
+                            <i class="bi bi-speedometer"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.users_list') }}" class="nav-item-link {{ 'active' if request.path == '/admin/users' else '' }}">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.interviews_list') }}" class="nav-item-link {{ 'active' if request.path == '/admin/interviews' else '' }}">
+                            <i class="bi bi-journal-code"></i>
+                            <span>Interviews</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.mentor_analytics') }}" class="nav-item-link {{ 'active' if request.path == '/admin/mentor-analytics' else '' }}">
+                            <i class="bi bi-chat-left-dots-fill"></i>
+                            <span>Mentor Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.logs_viewer', type='system') }}" class="nav-item-link {{ 'active' if request.path == '/admin/logs' else '' }}">
+                            <i class="bi bi-terminal-fill"></i>
+                            <span>System Logs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.research_dashboard') }}" class="nav-item-link {{ 'active' if request.path == '/admin/research' else '' }}">
+                            <i class="bi bi-cpu"></i>
+                            <span>Research Portal</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.reports_hub') }}" class="nav-item-link {{ 'active' if request.path == '/admin/reports' else '' }}">
+                            <i class="bi bg-transparent bi-file-earmark-bar-graph-fill"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin.database_management') }}" class="nav-item-link {{ 'active' if request.path == '/admin/database' else '' }}">
+                            <i class="bi bi-database-fill text-gradient-primary"></i>
+                            <span>Database</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="mb-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-lock-fill fs-5 text-danger"></i>
+                        <span class="fw-bold text-truncate text-danger" style="max-width: 110px;">{{ current_user.username }}</span>
+                    </div>
+                    {% if unread_count and unread_count > 0 %}
+                        <span class="badge bg-danger rounded-pill" style="font-size: 0.75rem;" id="notification-badge">{{ unread_count }}</span>
+                    {% endif %}
+                </div>
+                <!-- Theme Switcher Dropdown -->
+                <div class="theme-switcher-wrapper mb-2">
+                    <label for="theme-selector" class="form-label text-muted small fw-semibold mb-1">
+                        <i class="bi bi-palette-fill me-1"></i> Interface Theme
+                    </label>
+                    <select id="theme-selector" class="form-select form-select-sm" style="border-radius: 8px; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); font-weight: 500; cursor: pointer;">
+                        <option value="light">☀️ Light Theme</option>
+                        <option value="dark">🌙 Dark Theme</option>
+                        <option value="midnight">🌌 Midnight Theme</option>
+                        <option value="corporate">💼 Corporate Theme</option>
+                        <option value="purple">🔮 Purple Theme</option>
+                    </select>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                    <i class="bi bi-box-arrow-left me-1"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Core View Wrapper -->
+        <main class="content-wrapper">
+            <!-- Flash Message Notifications -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="container-fluid p-0">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px;">
+                                <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core Helper JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

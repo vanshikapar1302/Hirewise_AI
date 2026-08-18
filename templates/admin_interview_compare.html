@@ -1,0 +1,204 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Candidate Comparison - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Header -->
+    <div class="mb-4">
+        <a href="{{ url_for('admin.interviews_list') }}" class="btn btn-outline-secondary btn-sm mb-3" style="border-radius: 8px;">
+            <i class="bi bi-arrow-left me-1"></i> Back to Interviews Log
+        </a>
+        <h2 class="fw-bold text-white">Side-by-Side Candidate Comparison</h2>
+        <p class="text-secondary small">Compare competency maps, confidence signals, resume inflation rates, and verbal response transcripts side-by-side</p>
+    </div>
+
+    <!-- Multi-Radar Skill Overlay Chart -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold text-white mb-3 text-center"><i class="bi bi-intersect text-gradient-primary me-2"></i>Skills Competency Overlay Map</h5>
+                <div style="position: relative; height: 360px; max-width: 600px; margin: 0 auto;">
+                    <canvas id="comparisonRadarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Profiles Columns Grid -->
+    <div class="row g-4 mb-4">
+        {% for interview in interviews %}
+        <div class="col-md-6 col-lg-{{ 12 // (interviews|length) if interviews|length <= 3 else 4 }}">
+            <div class="glass-card p-4 h-100 border border-opacity-10" style="border-color: var(--border-color) !important;">
+                <div class="text-center mb-3">
+                    <div class="d-inline-flex p-3 rounded-circle bg-primary-light text-primary mb-2">
+                        <i class="bi bi-person-bounding-box text-gradient-primary fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-0">{{ interview.user.full_name or interview.user.username }}</h5>
+                    <span class="text-secondary small">Session #{{ interview.id }}</span>
+                </div>
+
+                <!-- High-level ratings -->
+                <div class="p-3 bg-dark bg-opacity-30 border border-opacity-5 rounded-3 mb-3 text-center">
+                    <small class="text-secondary d-block uppercase fw-bold" style="font-size: 0.7rem;">Overall Score</small>
+                    <h3 class="fw-bold text-success mb-0">{{ interview.overall_score }}%</h3>
+                </div>
+
+                <div class="row g-2 text-center small mb-3">
+                    <div class="col-6 border-end border-opacity-5">
+                        <small class="text-muted d-block">Confidence</small>
+                        <span class="fw-bold text-info">{{ confidence_by_interview.get(interview.id)|round(1) }}%</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Resume Mismatch</small>
+                        <span class="fw-bold text-danger">{{ inflation_by_interview.get(interview.id)|round(1) }}%</span>
+                    </div>
+                </div>
+
+                <div class="border-top pt-3 text-secondary small">
+                    <div class="mb-2"><strong>Interview Category:</strong> <span class="text-white">{{ interview.interview_type }}</span></div>
+                    <div class="mb-2"><strong>Target Role:</strong> <span class="text-white">{{ interview.role_applied or 'N/A' }}</span></div>
+                    <div class="mb-2"><strong>Target Company:</strong> <span class="text-white">{{ interview.company_name or 'N/A' }}</span></div>
+                    <div class="mb-2"><strong>Duration:</strong> <span class="text-white">{{ (interview.duration/60)|round(1) }} min</span></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Detailed Transcripts & Response-by-Response Comparison -->
+    <h4 class="fw-bold text-white mb-3 mt-5"><i class="bi bi-chat-right-quote-fill text-gradient-primary me-2"></i>Transcript Audits & Response Comparisons</h4>
+    
+    <div class="row g-4">
+        {% for interview in interviews %}
+        <div class="col-md-6 col-lg-{{ 12 // (interviews|length) if interviews|length <= 3 else 4 }}">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold text-white mb-3 pb-2 border-bottom border-secondary border-opacity-20 text-center">
+                    {{ interview.user.full_name or interview.user.username }}'s Answers
+                </h5>
+
+                {% set resps = responses_by_interview.get(interview.id) %}
+                {% if resps %}
+                    {% for r in resps %}
+                    <div class="mb-4 p-3 bg-dark bg-opacity-20 border border-opacity-10" style="border-radius: 12px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2 small text-secondary">
+                            <span class="badge bg-primary-light text-primary">Question #{{ loop.index }}</span>
+                            <span>{{ r.duration }}s response</span>
+                        </div>
+                        <h6 class="fw-bold text-white small mb-1">Q: {{ r.question_text }}</h6>
+                        <p class="text-secondary small italic mb-2">"{{ r.transcript or '[No speech detected]' }}"</p>
+                        
+                        <div class="row g-2 text-center" style="font-size: 0.75rem;">
+                            <div class="col-4 border-end border-opacity-5">
+                                <span class="text-muted d-block">Relevance</span>
+                                <span class="fw-bold text-success">{{ (r.relevance_score * 10)|round }}%</span>
+                            </div>
+                            <div class="col-4 border-end border-opacity-5">
+                                <span class="text-muted d-block">Clarity</span>
+                                <span class="fw-bold text-success">{{ (r.clarity_score * 10)|round }}%</span>
+                            </div>
+                            <div class="col-4">
+                                <span class="text-muted d-block">Gaze Eye</span>
+                                <span class="fw-bold text-info">{{ r.eye_contact_score }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-4 text-center text-secondary small">
+                        No responses logged for this candidate session.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Colors palette for candidates
+    var colors = [
+        { border: 'rgba(99, 102, 241, 1)', bg: 'rgba(99, 102, 241, 0.15)', point: 'rgba(99, 102, 241, 1)' },
+        { border: 'rgba(34, 197, 94, 1)', bg: 'rgba(34, 197, 94, 0.15)', point: 'rgba(34, 197, 94, 1)' },
+        { border: 'rgba(239, 68, 68, 1)', bg: 'rgba(239, 68, 68, 0.15)', point: 'rgba(239, 68, 68, 1)' },
+        { border: 'rgba(234, 179, 8, 1)', bg: 'rgba(234, 179, 8, 0.15)', point: 'rgba(234, 179, 8, 1)' }
+    ];
+
+    // Collect all skills dynamically to build radar labels
+    var allSkills = new Set();
+    {% for interview in interviews %}
+        {% set skills = skills_by_interview.get(interview.id) %}
+        {% for s in skills %}
+            allSkills.add("{{ s }}");
+        {% endfor %}
+    {% endfor %}
+
+    var labelsArray = Array.from(allSkills);
+    if (labelsArray.length === 0) {
+        labelsArray = ["Python", "DSA", "DBMS"];
+    }
+
+    // Build datasets array
+    var datasetsArray = [];
+    var colorIndex = 0;
+
+    {% for interview in interviews %}
+        {% set skills = skills_by_interview.get(interview.id) %}
+        var dataValues = [];
+        for (var i = 0; i < labelsArray.length; i++) {
+            var skillName = labelsArray[i];
+            var val = 50.0; // default prior/neutral fallback
+            {% for s, score in skills.items() %}
+                if ("{{ s }}" === skillName) {
+                    val = {{ score|round(1) }};
+                }
+            {% endfor %}
+            dataValues.push(val);
+        }
+
+        var col = colors[colorIndex % colors.length];
+        datasetsArray.push({
+            label: "{{ interview.user.full_name or interview.user.username }}",
+            data: dataValues,
+            borderColor: col.border,
+            backgroundColor: col.bg,
+            pointBackgroundColor: col.point,
+            borderWidth: 2
+        });
+        colorIndex++;
+    {% endfor %}
+
+    var radarCtx = document.getElementById('comparisonRadarChart').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: labelsArray,
+            datasets: datasetsArray
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: { color: '#9ca3af', font: { size: 11 } },
+                    ticks: { color: '#9ca3af', backdropColor: 'transparent' },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#9ca3af', font: { size: 12 } },
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

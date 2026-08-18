@@ -1,0 +1,72 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Mentor Chat Inspection - Session #{{ session_rec.id }} - HireWise Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 900px; margin: 0 auto;">
+    <!-- Back Header -->
+    <div class="mb-4">
+        <a href="{{ url_for('admin.mentor_analytics') }}" class="btn btn-outline-secondary btn-sm mb-3" style="border-radius: 8px;">
+            <i class="bi bi-arrow-left me-1"></i> Back to Mentor Analytics
+        </a>
+        <h2 class="fw-bold text-white">Mentor Conversation: Session #{{ session_rec.id }}</h2>
+        <p class="text-secondary small">Reviewing complete conversational history for session: <strong>{{ session_rec.title }}</strong></p>
+    </div>
+
+    <!-- Metadata Details Card -->
+    <div class="glass-card p-3 mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <span class="badge bg-warning-light text-warning me-2">{{ session_rec.mode.replace('practice_', '').upper() }} Mode</span>
+            <span class="text-secondary small">Messages Count:</span>
+            <span class="fw-bold text-white me-3">{{ session_rec.num_messages or 0 }}</span>
+            <span class="text-secondary small">Session Duration:</span>
+            <span class="fw-bold text-white">{{ ((session_rec.duration or 0)/60)|round(1) }} min</span>
+        </div>
+        <div class="small text-secondary">
+            Created on {{ session_rec.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+        </div>
+    </div>
+
+    <!-- Conversation Bubbles Log -->
+    <div class="glass-card p-4 d-flex flex-column gap-4" style="max-height: 600px; overflow-y: auto; background: rgba(0, 0, 0, 0.2);">
+        {% if messages %}
+            {% for m in messages %}
+                <div class="d-flex {% if m.sender == 'user' %}justify-content-end{% else %}justify-content-start{% endif %}">
+                    <div class="d-flex gap-2 max-width-70 {% if m.sender == 'user' %}flex-row-reverse{% endif %}">
+                        <!-- Avatar / Symbol -->
+                        <span class="rounded-circle d-flex align-items-center justify-content-center p-2
+                            {% if m.sender == 'user' %}bg-primary-light text-primary{% else %}bg-warning-light text-warning{% endif %}" style="width: 36px; height: 36px;">
+                            <i class="bi {% if m.sender == 'user' %}bi-person-fill{% else %}bi-robot{% endif %}"></i>
+                        </span>
+                        
+                        <!-- Content bubble -->
+                        <div class="p-3" style="border-radius: 16px; 
+                            {% if m.sender == 'user' %}
+                                background: linear-gradient(135deg, #4f46e5, #3730a3);
+                                border-top-right-radius: 4px;
+                            {% else %}
+                                background: rgba(255, 255, 255, 0.05);
+                                border-top-left-radius: 4px;
+                                border: 1px solid rgba(255, 255, 255, 0.05);
+                            {% endif %}">
+                            <p class="mb-1 text-white small" style="white-space: pre-wrap; line-height: 1.5; font-size: 0.9rem;">{{ m.content }}</p>
+                            <small class="text-secondary d-block text-end" style="font-size: 0.7rem;">{{ m.created_at.strftime('%I:%M %p') }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center p-5 text-secondary">
+                <i class="bi bi-chat-dots-fill display-4 mb-3 d-block"></i>
+                No messages logged in this conversation.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.max-width-70 {
+    max-width: 75%;
+}
+</style>
+{% endblock %}

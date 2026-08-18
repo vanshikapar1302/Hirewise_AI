@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireWise Report - {{ title }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            padding: 40px;
+        }
+        .header-section {
+            border-bottom: 2px solid #333333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .report-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1a1a1a;
+        }
+        .meta-text {
+            font-size: 13px;
+            color: #555555;
+        }
+        table {
+            font-size: 12px;
+        }
+        th {
+            background-color: #f2f2f2 !important;
+            color: #000000 !important;
+            font-weight: bold;
+            border-bottom: 2px solid #cccccc !important;
+        }
+        td, th {
+            padding: 10px !important;
+            border: 1px solid #dddddd !important;
+        }
+        .footer-section {
+            margin-top: 50px;
+            border-top: 1px solid #cccccc;
+            padding-top: 15px;
+            font-size: 11px;
+            color: #777777;
+            text-align: center;
+        }
+        /* Hide controls when printing */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body onload="window.print();">
+
+    <!-- Print Control Bar -->
+    <div class="no-print d-flex justify-content-between align-items-center mb-4 p-3 bg-light border rounded">
+        <div>
+            <span class="fw-bold">Printable PDF Report Mode</span>
+            <p class="mb-0 text-muted small">Use your browser's print dialog (e.g. Save to PDF) to export this sheet.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" onclick="window.print();">
+                <i class="bi bi-printer"></i> Trigger Print / Save PDF
+            </button>
+            <button class="btn btn-secondary" onclick="window.close();">
+                Close Window
+            </button>
+        </div>
+    </div>
+
+    <!-- Document Header -->
+    <div class="header-section d-flex justify-content-between align-items-end">
+        <div>
+            <h1 class="report-title mb-1">HireWise AI Platform</h1>
+            <h2 class="h5 text-muted mb-0">{{ title }}</h2>
+        </div>
+        <div class="text-end">
+            <p class="meta-text mb-0"><strong>Generated On:</strong> {{ date_str }}</p>
+            <p class="meta-text mb-0"><strong>Scope:</strong> Central Operations Audit</p>
+        </div>
+    </div>
+
+    <!-- Document Table Data -->
+    <table class="table table-striped align-middle">
+        {% if report_type == 'users' %}
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name / Username</th>
+                    <th>Email Address</th>
+                    <th>Tier</th>
+                    <th class="text-center">Mock Attempts</th>
+                    <th class="text-center">Average Score</th>
+                    <th>Registration Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in records %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td><strong>{{ u.full_name or u.username }}</strong><br><small class="text-muted">@{{ u.username }}</small></td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.skill_level }}</td>
+                    <td class="text-center">{{ u.total_interviews or 0 }}</td>
+                    <td class="text-center">{{ u.average_score or 0.0 }}%</td>
+                    <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        {% elif report_type == 'interviews' %}
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Target Company</th>
+                    <th>Role Applied</th>
+                    <th class="text-center">Duration</th>
+                    <th class="text-center">Overall Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in records %}
+                <tr>
+                    <td>#{{ i.id }}</td>
+                    <td>{{ i.user.full_name or i.user.username if i.user else 'Deleted User' }}</td>
+                    <td>{{ i.interview_type }}</td>
+                    <td>{{ i.company_name or 'General Practice' }}</td>
+                    <td>{{ i.role_applied or 'Software Engineer' }}</td>
+                    <td class="text-center">{{ (i.duration/60)|round(1) }} min</td>
+                    <td class="text-center fw-bold">{{ i.overall_score }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        {% else %}
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>User</th>
+                    <th>Chat Title</th>
+                    <th>Category Mode</th>
+                    <th class="text-center">Messages</th>
+                    <th class="text-center">Estimated Duration</th>
+                    <th>Date Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in records %}
+                <tr>
+                    <td>#{{ s.id }}</td>
+                    <td>{{ s.user.name if s.user else 'Unknown User' }}</td>
+                    <td>{{ s.title }}</td>
+                    <td>{{ s.mode }}</td>
+                    <td class="text-center">{{ s.num_messages }}</td>
+                    <td class="text-center">{{ (s.duration/60)|round(1) }} min</td>
+                    <td>{{ s.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        {% endif %}
+    </table>
+
+    <!-- Document Footer -->
+    <div class="footer-section">
+        <p class="mb-0">&copy; 2026 HireWise AI. This report contains confidential operations analytics. All rights reserved.</p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,324 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Dashboard - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-gradient-primary">Operations Overview</h2>
+            <p class="text-secondary small">Real-time status of HireWise AI users, resumes, interviews, and active connections</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            {% if unread_count and unread_count > 0 %}
+                <button class="btn btn-outline-danger btn-sm px-3 py-2 fw-semibold" id="clear-notif-btn" onclick="markAllNotificationsRead()" style="border-radius: 20px;">
+                    <i class="bi bi-bell-slash me-1"></i> Clear {{ unread_count }} Alerts
+                </button>
+            {% endif %}
+            <div class="badge bg-danger-light text-danger px-3 py-2.5 fw-semibold" style="border-radius: 20px; font-size: 0.85rem;">
+                <i class="bi bi-shield-check me-1"></i> Admin Security Shield Active
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row 1 -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Total Users</small>
+                    <span class="fs-2 fw-bold text-white">{{ total_users }}</span>
+                </div>
+                <div class="widget-icon bg-primary-light text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Currently Active</small>
+                    <span class="fs-2 fw-bold text-success">{{ active_now }}</span>
+                </div>
+                <div class="widget-icon bg-success-light text-success">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">New Today</small>
+                    <span class="fs-2 fw-bold text-warning">+{{ new_users_today }}</span>
+                </div>
+                <div class="widget-icon bg-warning-light text-warning">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="widget-card">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Activity rate</small>
+                    <span class="fs-2 fw-bold text-info">{{ activity_pct }}%</span>
+                </div>
+                <div class="widget-icon bg-info-light text-info">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recruiter Analytics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="widget-card h-100">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Average Candidate Score</small>
+                    <span class="fs-2 fw-bold text-white">{{ avg_score }}%</span>
+                </div>
+                <div class="widget-icon bg-success-light text-success">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card h-100">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Average Confidence Level</small>
+                    <span class="fs-2 fw-bold text-white">{{ avg_confidence }}%</span>
+                </div>
+                <div class="widget-icon bg-info-light text-info">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card h-100">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Average Questions to Stabilize</small>
+                    <span class="fs-2 fw-bold text-white">{{ avg_stabilization_questions }}</span>
+                </div>
+                <div class="widget-icon bg-primary-light text-primary">
+                    <i class="bi bi-activity"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card h-100">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Average Resume Inflation Score</small>
+                    <span class="fs-2 fw-bold text-white">{{ avg_inflation }}%</span>
+                </div>
+                <div class="widget-icon bg-danger-light text-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card h-100">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Top Evaluated Skills</small>
+                    <span class="fs-5 fw-bold text-white text-truncate d-block" style="max-width: 250px;">{{ top_skills_str }}</span>
+                </div>
+                <div class="widget-icon bg-warning-light text-warning">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="widget-card h-100">
+                <div>
+                    <small class="text-muted d-block uppercase fw-bold mb-1">Total Interviews Conducted</small>
+                    <span class="fs-2 fw-bold text-white">{{ total_interviews }}</span>
+                </div>
+                <div class="widget-icon bg-secondary-light text-secondary">
+                    <i class="bi bi-journal-code"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Log Feed -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-bell-fill text-gradient-primary me-2"></i>Real-time Admin Notifications</h5>
+                <div class="list-group list-group-flush" style="max-height: 380px; overflow-y: auto;">
+                    {% if notifications %}
+                        {% for n in notifications %}
+                        <div class="list-group-item bg-transparent text-white border-bottom border-opacity-10 py-3 d-flex align-items-center justify-content-between gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="p-2.5 rounded-circle d-flex align-items-center justify-content-center
+                                    {% if n.type == 'registration' %}bg-primary-light text-primary
+                                    {% elif n.type == 'resume_upload' %}bg-warning-light text-warning
+                                    {% elif n.type == 'interview_completed' %}bg-success-light text-success
+                                    {% elif n.type == 'high_score' %}bg-info-light text-info
+                                    {% elif n.type == 'user_blocked' %}bg-danger-light text-danger
+                                    {% else %}bg-secondary-light text-secondary{% endif %}" style="width: 42px; height: 42px;">
+                                    <i class="bi 
+                                        {% if n.type == 'registration' %}bi-person-plus-fill
+                                        {% elif n.type == 'resume_upload' %}bi-file-earmark-arrow-up-fill
+                                        {% elif n.type == 'interview_completed' %}bi-patch-check-fill
+                                        {% elif n.type == 'high_score' %}bi-trophy-fill
+                                        {% elif n.type == 'user_blocked' %}bi-slash-circle-fill
+                                        {% else %}bi-info-circle-fill{% endif %} fs-5"></i>
+                                </span>
+                                <div>
+                                    <p class="mb-0 fw-semibold {% if not n.is_read %}text-white{% else %}text-secondary{% endif %}" style="font-size: 0.95rem;">{{ n.message }}</p>
+                                    <small class="text-secondary small">{{ n.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                </div>
+                            </div>
+                            {% if not n.is_read %}
+                                <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 0.7rem;">NEW</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center p-5 text-secondary">
+                            <i class="bi bi-bell-slash display-4 mb-3 d-block"></i>
+                            No notifications generated yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="bi bi-hdd-network text-gradient-primary me-2"></i>Platform Diagnostics</h5>
+                <ul class="list-group list-group-flush text-white">
+                    <li class="list-group-item bg-transparent border-bottom border-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Database Size</span>
+                        <span class="fw-bold text-white">{{ db_size }} MB</span>
+                    </li>
+                    <li class="list-group-item bg-transparent border-bottom border-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Server Uptime</span>
+                        <span class="fw-bold text-white">{{ uptime }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent border-bottom border-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Gemini API Requests</span>
+                        <span class="fw-bold text-gradient-primary">{{ gemini_calls }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent border-bottom border-opacity-10 py-3 d-flex justify-content-between align-items-center">
+                        <span class="text-secondary small">Claude API Requests</span>
+                        <span class="fw-bold text-gradient-primary">{{ claude_calls }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Registrations -->
+        <div class="col-lg-6">
+            <div class="glass-card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Recent User Registrations</h5>
+                    <a href="{{ url_for('admin.users_list') }}" class="btn btn-outline-primary btn-sm" style="border-radius: 8px;">Manage Users</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important;">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Skill Level</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in recent_users %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if u.profile_photo and u.profile_photo != 'default_profile.png' %}
+                                            <img src="{{ url_for('serve_upload', filename=u.profile_photo) }}" class="rounded-circle" style="width: 25px; height: 25px; object-fit: cover;">
+                                        {% else %}
+                                            <i class="bi bi-person-circle fs-5 text-secondary"></i>
+                                        {% endif %}
+                                        <span class="fw-semibold">{{ u.username }}</span>
+                                    </div>
+                                </td>
+                                <td class="small text-secondary">{{ u.email }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if u.skill_level == 'Advanced' else ('primary' if u.skill_level == 'Intermediate' else 'secondary') }}-light text-{{ 'danger' if u.skill_level == 'Advanced' else ('primary' if u.skill_level == 'Intermediate' else 'secondary') }}">
+                                        {{ u.skill_level }}
+                                    </span>
+                                </td>
+                                <td class="small text-secondary">{{ u.created_at.strftime('%b %d, %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Security Logs -->
+        <div class="col-lg-6">
+            <div class="glass-card h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Recent Security & Audit Logs</h5>
+                    <a href="{{ url_for('admin.logs_viewer') }}" class="btn btn-outline-danger btn-sm" style="border-radius: 8px;">View All Logs</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0" style="background-color: transparent !important;">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Level</th>
+                                <th>Module</th>
+                                <th>Message</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for l in recent_logs %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-{{ 'danger' if l.level == 'ERROR' else ('warning' if l.level == 'WARNING' else 'info') }}-light text-{{ 'danger' if l.level == 'ERROR' else ('warning' if l.level == 'WARNING' else 'info') }}">
+                                        {{ l.level }}
+                                    </span>
+                                </td>
+                                <td class="small fw-semibold">{{ l.module or 'system' }}</td>
+                                <td class="small text-truncate text-secondary" style="max-width: 180px;">{{ l.message }}</td>
+                                <td class="small text-secondary">{{ l.created_at.strftime('%H:%M:%S') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function markAllNotificationsRead() {
+    fetch("{{ url_for('admin.mark_notifications_read') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Hide notification badge in sidebar
+            const badge = document.getElementById('notification-badge');
+            if (badge) badge.style.display = 'none';
+            
+            // Hide clear notifications button
+            const clearBtn = document.getElementById('clear-notif-btn');
+            if (clearBtn) clearBtn.style.display = 'none';
+            
+            // Reload page silently
+            window.location.reload();
+        } else {
+            console.error("Failed to mark notifications read: ", data.error);
+        }
+    })
+    .catch(err => console.error("Error clearing notifications: ", err));
+}
+</script>
+{% endblock %}

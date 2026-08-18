@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}HireWise Mentor - Developer Telemetry Console{% endblock %}
+
+{% block styles %}
+<style>
+    .debug-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .debug-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+    }
+
+    .telemetry-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .telemetry-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .telemetry-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .telemetry-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .telemetry-value {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .badge-provider {
+        background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .code-panel {
+        background: #1e1e2f !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+    }
+
+    .code-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    pre code {
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 0.9rem;
+        color: #f8f8f2;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+
+    .btn-refresh {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        transition: all 0.2s ease;
+    }
+
+    .btn-refresh:hover {
+        background: var(--primary);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="debug-container">
+    <div class="debug-header">
+        <div>
+            <h2 class="fw-bold mb-1 text-gradient-primary">Developer Telemetry Console</h2>
+            <p class="text-secondary small mb-0">Real-time diagnostics and execution traces for the HireWise Mentor LLM pipeline</p>
+        </div>
+        <button onclick="window.location.reload();" class="btn btn-refresh d-flex align-items-center gap-2 px-3 py-2" style="border-radius: 8px;">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Telemetry
+        </button>
+    </div>
+
+    <!-- Telemetry Cards -->
+    <div class="telemetry-grid">
+        <div class="telemetry-card">
+            <div class="telemetry-label">Active Provider</div>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <span class="badge-provider">{{ debug.current_provider.upper() }}</span>
+            </div>
+        </div>
+
+        <div class="telemetry-card">
+            <div class="telemetry-label">Model Identifier</div>
+            <div class="telemetry-value mt-1" style="font-size: 1.1rem; font-family: monospace;">{{ debug.model }}</div>
+        </div>
+
+        <div class="telemetry-card">
+            <div class="telemetry-label">Messages Loaded</div>
+            <div class="telemetry-value mt-1">{{ debug.history_count }} messages</div>
+        </div>
+
+        <div class="telemetry-card">
+            <div class="telemetry-label">Fallback Status</div>
+            <div class="telemetry-value mt-1" style="font-size: 1.1rem; color: {{ 'var(--danger)' if debug.fallback_reason != 'N/A' else 'var(--success)' }}">
+                {{ debug.fallback_reason }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Sent Panel -->
+    <div class="code-panel">
+        <div class="code-title">
+            <i class="bi bi-terminal-fill"></i> Context Prompt & Payload Sent to Model
+        </div>
+        <pre><code>{{ debug.prompt_sent }}</code></pre>
+    </div>
+
+    <!-- Response Received Panel -->
+    <div class="code-panel">
+        <div class="code-title">
+            <i class="bi bi-chat-left-text-fill"></i> Model Response Received
+        </div>
+        <pre><code>{{ debug.generated_response }}</code></pre>
+    </div>
+
+    <!-- Error/Diagnostics Logs -->
+    <div class="code-panel" style="border-color: rgba(239, 68, 68, 0.2);">
+        <div class="code-title" style="color: var(--danger);">
+            <i class="bi bi-exclamation-triangle-fill"></i> Error logs & Quality Warnings
+        </div>
+        <pre><code style="color: #ff5555;">{{ debug.errors }}</code></pre>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Interview History - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 960px; margin: 0 auto;">
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">Interview Attempt History</h1>
+            <p class="text-secondary mb-0">Browse through all completed and active mock preparation records.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('interview.select') }}" class="btn btn-primary px-3 py-2 fw-semibold" style="border-radius: 8px;">
+                Take New Mock
+            </a>
+        </div>
+    </header>
+
+    <div class="glass-card">
+        {% if not sessions %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar2-x text-muted display-4 mb-3"></i>
+                <h4 class="fw-bold mb-1">No Attempt History</h4>
+                <p class="text-secondary small mb-4">You have not initiated any interview mock sessions yet.</p>
+                <a href="{{ url_for('interview.select') }}" class="btn btn-primary px-4 py-2" style="border-radius: 8px;">
+                    Begin First Mock
+                </a>
+            </div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Interview Type</th>
+                            <th>Target Domain</th>
+                            <th>Overall Score</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sessions %}
+                            <tr>
+                                <td class="fw-semibold">{{ s.created_at.strftime('%b %d, %Y - %I:%M %p') }}</td>
+                                <td>
+                                    <span class="badge bg-primary-light text-primary border border-primary border-opacity-10">
+                                        {{ s.interview_type }}
+                                    </span>
+                                </td>
+                                <td>{{ s.company_name or 'General Mock' }}</td>
+                                <td>
+                                    {% if s.status == 'completed' %}
+                                        <span class="fw-bold {% if s.overall_score >= 75 %}text-success{% elif s.overall_score >= 55 %}text-warning{% else %}text-danger{% endif %}">
+                                            {{ s.overall_score }}/100
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted small">- / 100</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if s.status == 'completed' %}
+                                        <span class="badge bg-success-light text-success"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-light text-warning"><i class="bi bi-arrow-repeat me-1"></i>Unfinished</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if s.status == 'completed' %}
+                                        <a href="{{ url_for('interview.feedback_page', session_id=s.id) }}" class="btn btn-sm btn-primary py-1.5 px-3" style="border-radius: 6px;">
+                                            Report Card
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('interview.room', session_id=s.id) }}" class="btn btn-sm btn-outline-warning py-1.5 px-3" style="border-radius: 6px;">
+                                            Resume Mock
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>New Login Detected - HireWise AI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #1e293b;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+        }
+        .header {
+            background: {% if security_warning %}linear-gradient(135deg, #ef4444, #b91c1c){% else %}linear-gradient(135deg, #6366f1, #4f46e5){% endif %};
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin: 0 0 20px 0;
+        }
+        .details-box {
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 25px;
+            border: 1px solid #334155;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+        .label {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .value {
+            color: #f1f5f9;
+            font-weight: 500;
+            text-align: right;
+        }
+        .warning-text {
+            color: #f87171;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 14px 30px;
+            font-weight: 700;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .footer {
+            background-color: #0f172a;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #334155;
+        }
+        .footer p {
+            margin: 0;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{% if security_warning %}⚠️ Security Alert: New Login Detected{% else %}New Login Detected{% endif %}</h1>
+        </div>
+        <div class="content">
+            <p>Hello <strong>{{ name }}</strong>,</p>
+            <p>
+                {% if security_warning %}
+                We detected a login to your HireWise AI account from a new device or location that we don't recognize.
+                {% else %}
+                A new login to your HireWise AI account was detected.
+                {% endif %}
+            </p>
+            
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="label">Date & Time:</span>
+                    <span class="value">{{ timestamp }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">IP Address:</span>
+                    <span class="value">{{ ip_address }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Device:</span>
+                    <span class="value">{{ device }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Browser:</span>
+                    <span class="value">{{ browser }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Location:</span>
+                    <span class="value">{{ location }}</span>
+                </div>
+            </div>
+
+            {% if security_warning %}
+            <div class="warning-text">
+                If this login was not performed by you, please protect your account and reset your security password immediately.
+            </div>
+            <div style="text-align: center;">
+                <a href="{{ reset_url }}" class="btn">Reset Password Now</a>
+            </div>
+            {% else %}
+            <p>If this was you, no action is required.</p>
+            <p>If this was not you, please reset your password immediately.</p>
+            {% endif %}
+        </div>
+        <div class="footer">
+            <p>This is a security notification sent to you by HireWise AI Operations.<br>&copy; 2026 HireWise AI. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

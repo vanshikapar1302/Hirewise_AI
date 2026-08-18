@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HireWise AI - Placement Preparation{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom Style System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <a href="{{ url_for('dashboard.index') }}" class="brand-section">
+                <div class="brand-logo">H</div>
+                <span class="brand-name">HireWise AI</span>
+            </a>
+            
+            <nav class="flex-grow-1">
+                <ul class="nav-menu">
+                    {% if current_user.is_authenticated %}
+                        <li>
+                            <a href="{{ url_for('dashboard.home') }}" class="nav-item-link {{ active_nav('/dashboard') }}">
+                                <i class="bi bi-grid-1x2-fill"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('interview.select') }}" class="nav-item-link {{ active_nav('/interview') }}">
+                                <i class="bi bi-person-workspace"></i>
+                                <span>Mock Room</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('resume.upload') }}" class="nav-item-link {{ active_nav('/resume') }}">
+                                <i class="bi bi-file-earmark-pdf-fill"></i>
+                                <span>Resume Parser</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('mentor.chat') }}" class="nav-item-link {{ active_nav('/mentor') }}">
+                                <i class="bi bi-chat-left-text-fill"></i>
+                                <span>HireWise Mentor</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('dashboard.history') }}" class="nav-item-link {{ active_nav('/history') }}">
+                                <i class="bi bi-clock-history"></i>
+                                <span>History</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.profile') }}" class="nav-item-link {{ active_nav('/profile') }}">
+                                <i class="bi bi-person-fill-gear"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ url_for('dashboard.index') }}" class="nav-item-link {{ active_nav('/') }}">
+                                <i class="bi bi-house-door-fill"></i>
+                                <span>Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.login') }}" class="nav-item-link {{ active_nav('/login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>Sign In</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.register') }}" class="nav-item-link {{ active_nav('/register') }}">
+                                <i class="bi bi-person-plus-fill"></i>
+                                <span>Sign Up</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                {% if current_user.is_authenticated %}
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-person-circle fs-5 text-gradient-primary"></i>
+                        <span class="fw-bold text-truncate" style="max-width: 150px;">{{ current_user.username }}</span>
+                    </div>
+                {% endif %}
+                <!-- Theme Switcher Dropdown -->
+                <div class="theme-switcher-wrapper mb-2">
+                    <label for="theme-selector" class="form-label text-muted small fw-semibold mb-1">
+                        <i class="bi bi-palette-fill me-1"></i> Interface Theme
+                    </label>
+                    <select id="theme-selector" class="form-select form-select-sm" style="border-radius: 8px; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--border-color); font-weight: 500; cursor: pointer;">
+                        <option value="light">☀️ Light Theme</option>
+                        <option value="dark">🌙 Dark Theme</option>
+                        <option value="midnight">🌌 Midnight Theme</option>
+                        <option value="corporate">💼 Corporate Theme</option>
+                        <option value="purple">🔮 Purple Theme</option>
+                    </select>
+                </div>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                        <i class="bi bi-box-arrow-left me-1"></i> Sign Out
+                    </a>
+                {% endif %}
+            </div>
+        </aside>
+        
+        <!-- Main Core View Wrapper -->
+        <main class="content-wrapper">
+            <!-- Flash Message Notifications -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="container-fluid p-0">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert" style="border-radius: 12px;">
+                                <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% if error_title %}
+                <div class="container h-75 d-flex align-items-center justify-content-center">
+                    <div class="glass-card text-center p-5 max-width-600">
+                        <i class="bi bi-exclamation-octagon text-danger display-1 mb-4"></i>
+                        <h1 class="mb-3">{{ error_title }}</h1>
+                        <p class="text-secondary mb-4">{{ error_msg }}</p>
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary px-4 py-2" style="border-radius: 10px;">
+                            Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                {% block content %}{% endblock %}
+            {% endif %}
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core Helper JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 85vh;">
+    <div class="glass-card p-4 p-md-5 w-100" style="max-width: 500px; border-radius: 28px; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+        <div class="text-center mb-4">
+            <div class="brand-logo mx-auto mb-3" style="width: 55px; height: 55px; border-radius: 14px; font-size: 1.6rem; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);">H</div>
+            <h2 class="fw-bold text-gradient-primary" id="login-title">Student Sign In</h2>
+            <p class="text-secondary small" id="login-subtitle">Access your placement preparation dashboard and mentor sessions</p>
+        </div>
+
+        <!-- Role Selector Toggle Buttons -->
+        <div class="d-flex p-1 mb-4" style="background: rgba(255, 255, 255, 0.05); border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <button type="button" class="btn w-50 py-2.5 fw-bold role-toggle-btn active" id="btn-user-role" onclick="switchLoginRole('user')" style="border-radius: 12px; transition: all 0.3s ease;">
+                <i class="bi bi-person-fill me-1"></i> User
+            </button>
+            <button type="button" class="btn w-50 py-2.5 fw-bold role-toggle-btn text-secondary" id="btn-admin-role" onclick="switchLoginRole('admin')" style="border-radius: 12px; transition: all 0.3s ease;">
+                <i class="bi bi-shield-lock-fill me-1"></i> Admin
+            </button>
+        </div>
+        
+        <form action="{{ url_for('auth.login') }}" method="POST" id="login-form">
+            <!-- Email / Username Input -->
+            <div class="mb-3">
+                <label for="email_or_username" class="form-label fw-semibold" id="label-username">Username or Email</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control form-control-custom border-start-0" 
+                           id="email_or_username" 
+                           name="email_or_username" 
+                           placeholder="Enter username or email" 
+                           style="border-radius: 0 12px 12px 0;"
+                           required>
+                </div>
+            </div>
+            
+            <!-- Password Input -->
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="password" class="form-label fw-semibold mb-0">Password</label>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-radius: 12px 0 0 12px; border-color: var(--border-color);">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input type="password" 
+                           class="form-control form-control-custom border-start-0" 
+                           id="password" 
+                           name="password" 
+                           placeholder="••••••••" 
+                           style="border-radius: 0 12px 12px 0;"
+                           required>
+                </div>
+            </div>
+            
+            <!-- Remember Me -->
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember" style="cursor: pointer;">
+                    <label class="form-check-label text-secondary small" for="remember" style="cursor: pointer; user-select: none;">
+                        Keep me signed in
+                    </label>
+                </div>
+                <a href="{{ url_for('auth.forgot_password') }}" class="small fw-semibold text-decoration-none text-gradient-primary">Forgot Password?</a>
+            </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mb-3 shadow" id="submit-btn" style="border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; transition: all 0.3s ease;">
+                Sign In
+            </button>
+            
+            <!-- Social Login Providers -->
+            <div id="social-auth-section" class="my-4 text-center">
+                <div class="d-flex align-items-center mb-3">
+                    <hr class="flex-grow-1 border-secondary opacity-25">
+                    <span class="px-2 text-secondary small">Or connect with</span>
+                    <hr class="flex-grow-1 border-secondary opacity-25">
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{{ url_for('auth.oauth_login', provider='google') }}" class="btn btn-outline-light w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; border-color: rgba(255,255,255,0.1); color: var(--text-color); font-weight: 500; background: rgba(255,255,255,0.02);">
+                        <i class="bi bi-google text-danger"></i> Continue with Google
+                    </a>
+                    <a href="{{ url_for('auth.oauth_login', provider='github') }}" class="btn btn-outline-light w-100 py-2.5 d-flex align-items-center justify-content-center gap-2" style="border-radius: 12px; border-color: rgba(255,255,255,0.1); color: var(--text-color); font-weight: 500; background: rgba(255,255,255,0.02);">
+                        <i class="bi bi-github text-white"></i> Continue with GitHub
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Redirect Option -->
+            <div class="text-center" id="signup-redirect">
+                <span class="text-secondary small">Don't have an account? </span>
+                <a href="{{ url_for('auth.register') }}" class="small fw-semibold text-decoration-none text-gradient-primary">Sign Up</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.role-toggle-btn.active {
+    background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+.role-toggle-btn:not(.active):hover {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.05);
+}
+</style>
+
+<script>
+function switchLoginRole(role) {
+    const userBtn = document.getElementById('btn-user-role');
+    const adminBtn = document.getElementById('btn-admin-role');
+    const form = document.getElementById('login-form');
+    const title = document.getElementById('login-title');
+    const subtitle = document.getElementById('login-subtitle');
+    const redirectDiv = document.getElementById('signup-redirect');
+    const submitBtn = document.getElementById('submit-btn');
+    const usernameLabel = document.getElementById('label-username');
+    const usernameInput = document.getElementById('email_or_username');
+    const socialAuth = document.getElementById('social-auth-section');
+
+    if (role === 'admin') {
+        userBtn.classList.remove('active');
+        userBtn.classList.add('text-secondary');
+        adminBtn.classList.add('active');
+        adminBtn.classList.remove('text-secondary');
+        
+        form.action = "{{ url_for('admin.login') }}";
+        title.innerText = "Admin Operations Center";
+        subtitle.innerText = "Monitor metrics, student scorecard logs, and AI system health";
+        usernameLabel.innerText = "Admin Username or Email";
+        usernameInput.placeholder = "Enter admin ID or email";
+        redirectDiv.style.visibility = 'hidden';
+        submitBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        if (socialAuth) socialAuth.style.display = 'none';
+    } else {
+        adminBtn.classList.remove('active');
+        adminBtn.classList.add('text-secondary');
+        userBtn.classList.add('active');
+        userBtn.classList.remove('text-secondary');
+        
+        form.action = "{{ url_for('auth.login') }}";
+        title.innerText = "Student Sign In";
+        subtitle.innerText = "Access your placement preparation dashboard and mentor sessions";
+        usernameLabel.innerText = "Username or Email";
+        usernameInput.placeholder = "Enter username or email";
+        redirectDiv.style.visibility = 'visible';
+        submitBtn.style.background = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+        if (socialAuth) socialAuth.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

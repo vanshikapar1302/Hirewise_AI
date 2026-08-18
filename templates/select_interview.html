@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Mock Interview - HireWise AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0" style="max-width: 960px; margin: 0 auto;">
+    <header class="mb-4">
+        <h1 class="fw-bold mb-1">Select Interview Mode</h1>
+        <p class="text-secondary">Configure your target practice session to generate custom simulated questions.</p>
+    </header>
+
+    <form action="{{ url_for('interview.select') }}" method="POST" id="select-interview-form" enctype="multipart/form-data">
+        <!-- Input parameters -->
+        <input type="hidden" name="interview_type" id="interview_type_input" value="HR">
+        <input type="hidden" name="company_name" id="company_name_input" value="">
+        <input type="hidden" name="project_input_option" id="project_input_option" value="github">
+
+        <!-- Primary Categories Grid -->
+        <div class="row g-4 mb-4">
+            <!-- HR Mock Card -->
+            <div class="col-md-4">
+                <div class="glass-card text-center p-4 h-100 mode-card active" data-mode="HR" style="cursor: pointer; border-width: 2px;">
+                    <div class="widget-icon bg-primary-light text-primary mx-auto mb-3">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h3 class="fw-bold h4">HR Interview</h3>
+                    <p class="text-secondary small mb-0">
+                        Focuses on behavioral assessments, communication flow, company alignment, and general background fits.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Technical Mock Card -->
+            <div class="col-md-4">
+                <div class="glass-card text-center p-4 h-100 mode-card" data-mode="Technical" style="cursor: pointer; border-width: 2px;">
+                    <div class="widget-icon bg-success-light text-success mx-auto mb-3">
+                        <i class="bi bi-code-square"></i>
+                    </div>
+                    <h3 class="fw-bold h4">Technical Interview</h3>
+                    <p class="text-secondary small mb-0">
+                        Evaluates core domain knowledge, logic, DBMS, OOP, and data structure capabilities.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Mixed Mock Card -->
+            <div class="col-md-4">
+                <div class="glass-card text-center p-4 h-100 mode-card" data-mode="Mixed" style="cursor: pointer; border-width: 2px;">
+                    <div class="widget-icon bg-info-light text-info mx-auto mb-3">
+                        <i class="bi bi-shuffle"></i>
+                    </div>
+                    <h3 class="fw-bold h4">Mixed Interview</h3>
+                    <p class="text-secondary small mb-0">
+                        A full placement dry-run merging core engineering concepts and soft-skill behavior queries.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Modes Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Resume-Based Mode Card -->
+            <div class="col-md-4">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between p-4 mode-card" data-mode="Resume" style="cursor: pointer; border-width: 2px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="widget-icon bg-primary-light text-primary">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Resume-Based</h4>
+                            <span class="text-muted small">Technical drill-down</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-secondary small mt-3 mb-3">
+                        Uploads your PDF, parses the skills and final year project names, and prompts questions tailored exactly to your resume statements.
+                    </p>
+
+                    {% if resume_unlocked or session.get('resume_questions_temp') %}
+                        <div class="alert alert-success border-0 py-2 px-3 m-0 small d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span>Resume loaded. Ready.</span>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('resume.upload') }}" class="btn btn-sm btn-outline-primary align-self-start fw-semibold py-1.5 px-3" style="border-radius: 8px;">
+                            <i class="bi bi-upload"></i> Upload Resume
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Company-Specific Preparation -->
+            <div class="col-md-4">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between p-4 mode-card" data-mode="Company" style="cursor: pointer; border-width: 2px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="widget-icon bg-warning-light text-warning">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Company-Specific</h4>
+                            <span class="text-muted small">Corporate guides</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-secondary small mt-3 mb-3">
+                        Practice with structured questions and technical standards matching the real assessment models of major placement companies.
+                    </p>
+
+                    <!-- Selection Buttons -->
+                    <div class="d-flex flex-wrap gap-2" id="company-btn-group">
+                        <button type="button" class="btn btn-xs btn-outline-secondary company-select-btn" data-company="Amazon" style="border-radius: 6px; font-size: 0.75rem;">Amazon</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary company-select-btn" data-company="Google" style="border-radius: 6px; font-size: 0.75rem;">Google</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary company-select-btn" data-company="Microsoft" style="border-radius: 6px; font-size: 0.75rem;">Microsoft</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary company-select-btn" data-company="TCS" style="border-radius: 6px; font-size: 0.75rem;">TCS</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project-Based Mode Card -->
+            <div class="col-md-4">
+                <div class="glass-card h-100 d-flex flex-column justify-content-between p-4 mode-card" data-mode="Project" style="cursor: pointer; border-width: 2px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="widget-icon bg-info-light text-info">
+                            <i class="bi bi-journal-code"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-0">Project Interview</h4>
+                            <span class="text-muted small">Adaptive built-system drill</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-secondary small mt-3 mb-3">
+                        Paste a URL, upload a synopsis, or input manually to practice questions specifically tailored to your built system's design and contributions.
+                    </p>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-info text-white py-1.5 px-3" style="border-radius: 8px;">Adaptive</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Details Form (shown when Project Interview card is selected) -->
+        <div class="glass-card mb-4 p-4 mx-auto" id="project-input-container" style="display: none; max-width: 550px;">
+            <label class="form-label fw-semibold text-gradient-primary mb-3">
+                <i class="bi bi-folder-fill me-1"></i> Project Input Configuration
+            </label>
+            <p class="text-secondary small mb-3">Configure how you'd like to supply your project details for the interview engine:</p>
+
+            <ul class="nav nav-pills nav-fill mb-3 gap-1" id="project-tab" role="tablist" style="background: rgba(255, 255, 255, 0.05); padding: 5px; border-radius: 8px;">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active py-1.5 small fw-semibold" id="tab-github" data-bs-toggle="pill" data-bs-target="#panel-github" type="button" role="tab" style="border-radius: 6px;">GitHub URL</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1.5 small fw-semibold" id="tab-deployed" data-bs-toggle="pill" data-bs-target="#panel-deployed" type="button" role="tab" style="border-radius: 6px;">Deployed URL</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1.5 small fw-semibold" id="tab-pdf" data-bs-toggle="pill" data-bs-target="#panel-pdf" type="button" role="tab" style="border-radius: 6px;">Upload Synopsis</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link py-1.5 small fw-semibold" id="tab-manual" data-bs-toggle="pill" data-bs-target="#panel-manual" type="button" role="tab" style="border-radius: 6px;">Manual</button>
+                </li>
+            </ul>
+
+            <div class="tab-content border p-3 rounded" style="border-color: var(--border-color) !important; background: rgba(255,255,255,0.01);">
+                <!-- GitHub -->
+                <div class="tab-pane fade show active" id="panel-github" role="tabpanel">
+                    <div class="mb-2">
+                        <label for="project_github_url" class="form-label small fw-semibold text-secondary">GitHub Repository URL</label>
+                        <input type="url" class="form-control form-control-custom" id="project_github_url" name="project_github_url" placeholder="https://github.com/username/repository">
+                    </div>
+                </div>
+
+                <!-- Deployed -->
+                <div class="tab-pane fade" id="panel-deployed" role="tabpanel">
+                    <div class="mb-2">
+                        <label for="project_deployed_url" class="form-label small fw-semibold text-secondary">Deployed Website URL</label>
+                        <input type="url" class="form-control form-control-custom" id="project_deployed_url" name="project_deployed_url" placeholder="https://your-website.com">
+                    </div>
+                </div>
+
+                <!-- Synopsis PDF -->
+                <div class="tab-pane fade" id="panel-pdf" role="tabpanel">
+                    <div class="mb-2">
+                        <label for="project_pdf" class="form-label small fw-semibold text-secondary">Upload Project Synopsis (PDF)</label>
+                        <input type="file" class="form-control form-control-custom" id="project_pdf" name="project_pdf" accept=".pdf">
+                        <span class="text-muted d-block mt-1" style="font-size: 0.75rem;">Upload a PDF document detailing the system architecture and features.</span>
+                    </div>
+                </div>
+
+                <!-- Manual details -->
+                <div class="tab-pane fade" id="panel-manual" role="tabpanel">
+                    <div class="d-flex flex-column gap-3">
+                        <div>
+                            <label for="project_title" class="form-label small fw-semibold text-secondary">Project Title</label>
+                            <input type="text" class="form-control form-control-custom" id="project_title" name="project_title" placeholder="e.g. Smart Smart-Home Hub Backend">
+                        </div>
+                        <div>
+                            <label for="project_description" class="form-label small fw-semibold text-secondary">Project Description</label>
+                            <textarea class="form-control form-control-custom" id="project_description" name="project_description" rows="2" placeholder="Describe the problem solved and core workflow..."></textarea>
+                        </div>
+                        <div>
+                            <label for="project_technologies" class="form-label small fw-semibold text-secondary">Technologies Used</label>
+                            <input type="text" class="form-control form-control-custom" id="project_technologies" name="project_technologies" placeholder="e.g. Python, Flask, Supabase, Redis">
+                        </div>
+                        <div>
+                            <label for="project_features" class="form-label small fw-semibold text-secondary">Features Implemented</label>
+                            <textarea class="form-control form-control-custom" id="project_features" name="project_features" rows="2" placeholder="e.g. OAuth integration, real-time messaging using websockets..."></textarea>
+                        </div>
+                        <div>
+                            <label for="project_contribution" class="form-label small fw-semibold text-secondary">Personal Contribution</label>
+                            <textarea class="form-control form-control-custom" id="project_contribution" name="project_contribution" rows="2" placeholder="Which modules did you implement?"></textarea>
+                        </div>
+                        <div>
+                            <label for="project_challenges" class="form-label small fw-semibold text-secondary">Challenges Faced</label>
+                            <textarea class="form-control form-control-custom" id="project_challenges" name="project_challenges" rows="2" placeholder="e.g. Database load under concurrency, how you resolved it..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experimental Interview Mode Choice -->
+        <div class="glass-card mb-4 p-4 mx-auto" style="max-width: 480px;">
+            <label class="form-label fw-semibold text-gradient-primary mb-3">
+                <i class="bi bi-cpu me-1"></i> Experimental Interview Mode
+            </label>
+            <div class="d-flex flex-column gap-2">
+                <div class="form-check p-3 rounded border" style="cursor: pointer; transition: all 0.2s;" id="mode-fixed-container">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="experiment_mode" id="mode-fixed" value="fixed" checked>
+                    <label class="form-check-label fw-bold" for="mode-fixed" style="cursor: pointer;">
+                        Standard Fixed Mode
+                        <span class="d-block text-secondary small fw-normal mt-1">
+                            A set of 5 pre-selected questions assessing standard technical and behavior guidelines.
+                        </span>
+                    </label>
+                </div>
+                <div class="form-check p-3 rounded border" style="cursor: pointer; transition: all 0.2s;" id="mode-rule-container">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="experiment_mode" id="mode-rule" value="adaptive_rule">
+                    <label class="form-check-label fw-bold" for="mode-rule" style="cursor: pointer;">
+                        Rule-Based Adaptive Mode
+                        <span class="d-block text-secondary small fw-normal mt-1">
+                            Adapts question difficulty dynamically based on mathematical correctness & depth performance score thresholds.
+                        </span>
+                    </label>
+                </div>
+                <div class="form-check p-3 rounded border" style="cursor: pointer; transition: all 0.2s;" id="mode-gemini-container">
+                    <input class="form-check-input ms-0 me-2" type="radio" name="experiment_mode" id="mode-gemini" value="adaptive_gemini">
+                    <label class="form-check-label fw-bold" for="mode-gemini" style="cursor: pointer;">
+                        Cognitive LLM Adaptive Mode
+                        <span class="d-block text-secondary small fw-normal mt-1">
+                            Uses Gemini orchestrator to analyze real-time skill state estimates and optimize targeted skill questions.
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Role Applied For -->
+        <div class="glass-card mb-4 p-4 mx-auto" style="max-width: 480px;">
+            <label for="role_applied" class="form-label fw-semibold text-gradient-primary"><i class="bi bi-person-workspace me-1"></i> Target Job Role Applied For</label>
+            <input type="text" 
+                   class="form-control form-control-custom" 
+                   id="role_applied" 
+                   name="role_applied" 
+                   placeholder="e.g. Software Engineer, Data Analyst, Product Manager"
+                   value="Software Engineer"
+                   required>
+        </div>
+
+        <!-- Start Simulation Button wrapper -->
+        <div class="text-center py-4">
+            <button type="submit" class="btn btn-primary btn-lg px-5 py-3 fw-bold shadow-lg" id="start-btn" style="border-radius: 12px; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; min-width: 250px;">
+                Begin Mock Simulation <i class="bi bi-play-fill ms-1"></i>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .mode-card {
+        border-color: var(--border-color);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mode-card:hover {
+        border-color: var(--primary) !important;
+        background-color: var(--primary-light) !important;
+    }
+    .mode-card.active {
+        border-color: var(--primary) !important;
+        background-color: var(--primary-light) !important;
+        box-shadow: 0 0 0 1px var(--primary) !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.mode-card');
+    const typeInput = document.getElementById('interview_type_input');
+    const companyInput = document.getElementById('company_name_input');
+    const companyBtns = document.querySelectorAll('.company-select-btn');
+    const form = document.getElementById('select-interview-form');
+    const projectInputContainer = document.getElementById('project-input-container');
+    const projectTabs = document.querySelectorAll('#project-tab button');
+    const projectOptionInput = document.getElementById('project_input_option');
+
+    // Handle Project Input Option pills change
+    projectTabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', (e) => {
+            const id = e.target.id;
+            projectOptionInput.value = id.replace('tab-', '');
+        });
+    });
+
+    // Handle Mode card click transitions
+    cards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Prevent interference if clicking buttons inside cards
+            if (e.target.closest('a') || e.target.closest('#company-btn-group')) {
+                return;
+            }
+            
+            const mode = card.getAttribute('data-mode');
+            
+            // Check if Resume Mode is locked
+            if (mode === 'Resume' && !{{ 'true' if (resume_unlocked or session.get('resume_questions_temp')) else 'false' }}) {
+                alert('Please upload a PDF resume first to unlock Resume-Based mock mode.');
+                return;
+            }
+
+            cards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            typeInput.value = mode;
+
+            // Toggle project form based on selected mode
+            if (mode === 'Project') {
+                projectInputContainer.style.display = 'block';
+            } else {
+                projectInputContainer.style.display = 'none';
+            }
+
+            // Clear company selection if choosing general categories
+            if (mode !== 'Company') {
+                companyInput.value = '';
+                companyBtns.forEach(btn => btn.classList.replace('btn-secondary', 'btn-outline-secondary'));
+            } else {
+                // Auto-select Amazon as default company if none set
+                if (!companyInput.value) {
+                    const firstBtn = document.querySelector('.company-select-btn');
+                    if (firstBtn) firstBtn.click();
+                }
+            }
+        });
+    });
+
+    // Handle Company buttons
+    companyBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Avoid triggering card event twice
+            
+            companyBtns.forEach(b => b.classList.replace('btn-secondary', 'btn-outline-secondary'));
+            btn.classList.replace('btn-outline-secondary', 'btn-secondary');
+            
+            companyInput.value = btn.getAttribute('data-company');
+            
+            // Auto-select Company Mode Card
+            const companyCard = document.querySelector('.mode-card[data-mode="Company"]');
+            cards.forEach(c => c.classList.remove('active'));
+            if (companyCard) companyCard.classList.add('active');
+            typeInput.value = 'Company';
+            projectInputContainer.style.display = 'none';
+        });
+    });
+
+    // Form Submission Validation for Project Interview
+    form.addEventListener('submit', (e) => {
+        const mode = typeInput.value;
+        if (mode === 'Project') {
+            const option = projectOptionInput.value;
+            let valid = false;
+            let errorMsg = '';
+
+            if (option === 'github') {
+                const val = document.getElementById('project_github_url').value.trim();
+                if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
+                    valid = true;
+                } else {
+                    errorMsg = 'Please enter a valid GitHub repository URL.';
+                }
+            } else if (option === 'deployed') {
+                const val = document.getElementById('project_deployed_url').value.trim();
+                if (val && (val.startsWith('http://') || val.startsWith('https://'))) {
+                    valid = true;
+                } else {
+                    errorMsg = 'Please enter a valid deployed website URL.';
+                }
+            } else if (option === 'pdf') {
+                const val = document.getElementById('project_pdf').value;
+                if (val) {
+                    valid = true;
+                } else {
+                    errorMsg = 'Please upload a PDF project synopsis/document.';
+                }
+            } else if (option === 'manual') {
+                const title = document.getElementById('project_title').value.trim();
+                const desc = document.getElementById('project_description').value.trim();
+                if (title && desc) {
+                    valid = true;
+                } else {
+                    errorMsg = 'Please enter at least the project Title and Description.';
+                }
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                alert(errorMsg);
+            }
+        }
+    });
+
+    // Handle experiment mode container highlight
+    const expRadios = document.querySelectorAll('input[name="experiment_mode"]');
+    function updateExpHighlight() {
+        expRadios.forEach(radio => {
+            const container = radio.closest('.form-check');
+            if (radio.checked) {
+                container.style.borderColor = 'var(--primary)';
+                container.style.backgroundColor = 'var(--primary-light)';
+            } else {
+                container.style.borderColor = 'var(--border-color)';
+                container.style.backgroundColor = 'transparent';
+            }
+        });
+    }
+    expRadios.forEach(radio => {
+        radio.addEventListener('change', updateExpHighlight);
+        // Make the whole container clickable
+        const container = radio.closest('.form-check');
+        container.addEventListener('click', (e) => {
+            if (e.target !== radio) {
+                radio.checked = true;
+                updateExpHighlight();
+            }
+        });
+    });
+    updateExpHighlight();
+});
+</script>
+{% endblock %}
