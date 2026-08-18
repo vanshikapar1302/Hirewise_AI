@@ -1,0 +1,331 @@
+{
+  "questions": [
+    {
+      "text": "Tell me about yourself. What motivated you to choose engineering?",
+      "category": "HR",
+      "difficulty": "Easy",
+      "expected_keywords": ["motivated", "passion", "project", "engineering", "skills", "learn"]
+    },
+    {
+      "text": "What are your greatest strengths and weaknesses, and how do you work on your weaknesses?",
+      "category": "HR",
+      "difficulty": "Easy",
+      "expected_keywords": ["strength", "weakness", "improve", "feedback", "learn", "discipline"]
+    },
+    {
+      "text": "Why do you want to join our organization, and where do you see yourself in five years?",
+      "category": "HR",
+      "difficulty": "Medium",
+      "expected_keywords": ["growth", "career", "contribution", "goals", "value", "learn"]
+    },
+    {
+      "text": "Describe a conflict you had with a team member in a project. How did you resolve it?",
+      "category": "Behavioral",
+      "difficulty": "Medium",
+      "expected_keywords": ["conflict", "listen", "communication", "compromise", "collaboration", "resolution"]
+    },
+    {
+      "text": "Tell me about a time you failed to meet a deadline. What did you learn from that experience?",
+      "category": "Behavioral",
+      "difficulty": "Medium",
+      "expected_keywords": ["deadline", "time-management", "planning", "lesson", "communicate", "responsibility"]
+    },
+    {
+      "text": "What are Python list comprehensions, and how do you use them? Can you provide an example?",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["list comprehension", "syntax", "readable", "iterable", "filter"],
+      "skill": "Python",
+      "subtopic": "Lists",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "Explain the difference between mutable and immutable objects in Python, listing examples of each.",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["mutable", "immutable", "tuple", "list", "dict", "string", "id", "modify"],
+      "skill": "Python",
+      "subtopic": "Data Types",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "What is the difference between '==' and 'is' operators in Python?",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["equality", "identity", "value", "memory address", "reference"],
+      "skill": "Python",
+      "subtopic": "Operators",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "Explain Python decorators. How do they work, and how would you implement a simple decorator that logs function execution time?",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["decorator", "wrapper", "first-class functions", "closure", "arguments", "functools", "wraps"],
+      "skill": "Python",
+      "subtopic": "Decorators",
+      "prerequisite_skills": ["Python"]
+    },
+    {
+      "text": "What is the difference between a generator and a regular function in Python? How does the 'yield' keyword work?",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["generator", "yield", "iterator", "lazy evaluation", "memory efficiency", "next", "state"],
+      "skill": "Python",
+      "subtopic": "Generators",
+      "prerequisite_skills": ["Python"]
+    },
+    {
+      "text": "How does memory management work in Python? Explain Reference Counting and the Garbage Collector.",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["memory management", "reference counting", "garbage collection", "cyclic references", "gc module", "generational"],
+      "skill": "Python",
+      "subtopic": "Memory Management",
+      "prerequisite_skills": ["Python"]
+    },
+    {
+      "text": "What is the Global Interpreter Lock (GIL) in Python? How does it affect multi-threaded applications, and how can you bypass its limitations?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["gil", "multiprocessing", "multithreading", "concurrency", "cpu-bound", "io-bound", "cpython"],
+      "skill": "Python",
+      "subtopic": "Concurrency",
+      "prerequisite_skills": ["Python"]
+    },
+    {
+      "text": "Explain metaclasses in Python. What is the role of the '__new__' and '__init__' methods in a metaclass?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["metaclass", "type", "class creation", "__new__", "__init__", "customize", "boilerplate"],
+      "skill": "Python",
+      "subtopic": "Metaclasses",
+      "prerequisite_skills": ["Python"]
+    },
+    {
+      "text": "How do coroutines and the 'asyncio' library work in Python? What is the event loop?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["coroutine", "asyncio", "event loop", "async", "await", "non-blocking", "single-threaded"],
+      "skill": "Python",
+      "subtopic": "Async IO",
+      "prerequisite_skills": ["Python"]
+    },
+    {
+      "text": "What is a Stack, and how is it different from a Queue? What are their typical time complexities for push/enqueue and pop/dequeue?",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["stack", "queue", "lifo", "fifo", "push", "pop", "enqueue", "dequeue", "O(1)"],
+      "skill": "DSA",
+      "subtopic": "Basic Data Structures",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "Explain Binary Search. What is its time complexity, and what is the prerequisite condition of the array?",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["binary search", "sorted", "divide and conquer", "logarithmic", "O(log n)", "midpoint"],
+      "skill": "DSA",
+      "subtopic": "Searching",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "What is a Linked List? What are the advantages of a Linked List over an Array?",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["linked list", "array", "pointers", "dynamic size", "insertion", "deletion", "contiguous memory"],
+      "skill": "DSA",
+      "subtopic": "Linked Lists",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "How do you reverse a singly linked list? Describe both the iterative and recursive approaches.",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["reverse", "linked list", "iterative", "recursive", "pointers", "prev", "curr", "next"],
+      "skill": "DSA",
+      "subtopic": "Linked Lists",
+      "prerequisite_skills": ["DSA"]
+    },
+    {
+      "text": "Explain the quicksort algorithm. What is the role of the pivot element, and what is its worst-case and average-case time complexity?",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["quicksort", "pivot", "partition", "divide and conquer", "O(n log n)", "O(n^2)", "average case", "worst case"],
+      "skill": "DSA",
+      "subtopic": "Sorting",
+      "prerequisite_skills": ["DSA"]
+    },
+    {
+      "text": "What is the difference between Depth First Search (DFS) and Breadth First Search (BFS) on graphs? What data structures are used to implement them?",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["dfs", "bfs", "stack", "queue", "recursion", "level-order", "graph traversal", "visited set"],
+      "skill": "DSA",
+      "subtopic": "Graph Algorithms",
+      "prerequisite_skills": ["DSA"]
+    },
+    {
+      "text": "What is Dynamic Programming? Explain the difference between Memoization (Top-down) and Tabulation (Bottom-up) approaches with an example.",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["dynamic programming", "memoization", "tabulation", "top-down", "bottom-up", "overlapping subproblems", "optimal substructure"],
+      "skill": "DSA",
+      "subtopic": "Dynamic Programming",
+      "prerequisite_skills": ["DSA"]
+    },
+    {
+      "text": "Explain Dijkstra's Algorithm for finding the shortest path in a weighted graph. What is its time complexity, and why doesn't it work with negative edge weights?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["dijkstra", "shortest path", "priority queue", "min-heap", "greedy", "negative weights", "relaxation"],
+      "skill": "DSA",
+      "subtopic": "Graph Algorithms",
+      "prerequisite_skills": ["DSA"]
+    },
+    {
+      "text": "Explain the concept of an AVL Tree or Red-Black Tree. How do they maintain self-balancing property, and why is it important?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["self-balancing", "avl tree", "red-black tree", "rotations", "height balance", "search complexity", "O(log n)"],
+      "skill": "DSA",
+      "subtopic": "Trees",
+      "prerequisite_skills": ["DSA"]
+    },
+    {
+      "text": "What is a Primary Key in DBMS? How does it differ from a Unique Key and a Foreign Key?",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["primary key", "unique key", "foreign key", "null values", "referential integrity", "identification"],
+      "skill": "DBMS",
+      "subtopic": "Keys",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "Explain the difference between DELETE, TRUNCATE, and DROP statements in SQL.",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["delete", "truncate", "drop", "dml", "ddl", "rollback", "transaction log", "schema"],
+      "skill": "DBMS",
+      "subtopic": "SQL Commands",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "What are SQL Joins? Explain the difference between INNER JOIN, LEFT JOIN, RIGHT JOIN, and FULL OUTER JOIN.",
+      "category": "Technical",
+      "difficulty": "Easy",
+      "expected_keywords": ["inner join", "left join", "right join", "full outer join", "null matching", "records"],
+      "skill": "DBMS",
+      "subtopic": "SQL Joins",
+      "prerequisite_skills": []
+    },
+    {
+      "text": "What is indexing in database systems? Explain how B-Trees are used to optimize search queries, and mention a downside of having too many indexes.",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["index", "indexing", "b-tree", "search optimization", "write overhead", "insert update delete", "pointer"],
+      "skill": "DBMS",
+      "subtopic": "Indexing",
+      "prerequisite_skills": ["DBMS"]
+    },
+    {
+      "text": "What is Database Normalization? Explain the requirements for 1NF, 2NF, and 3NF with examples.",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["normalization", "1nf", "2nf", "3nf", "functional dependency", "partial dependency", "transitive dependency", "redundancy"],
+      "skill": "DBMS",
+      "subtopic": "Normalization",
+      "prerequisite_skills": ["DBMS"]
+    },
+    {
+      "text": "Explain the difference between a clustered and a non-clustered index. How do they affect physical data storage?",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["clustered index", "non-clustered index", "physical storage", "data pages", "leaf node", "sort order", "single clustered index"],
+      "skill": "DBMS",
+      "subtopic": "Indexing",
+      "prerequisite_skills": ["DBMS"]
+    },
+    {
+      "text": "Explain the ACID properties in databases. Why are they crucial for transactional integrity?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["acid", "atomicity", "consistency", "isolation", "durability", "transaction", "rollback", "commit"],
+      "skill": "DBMS",
+      "subtopic": "Transactions",
+      "prerequisite_skills": ["DBMS"]
+    },
+    {
+      "text": "What are database transaction isolation levels, and what anomalies (like dirty read, non-repeatable read, phantom read) do they prevent?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["isolation levels", "read uncommitted", "read committed", "repeatable read", "serializable", "dirty read", "non-repeatable read", "phantom read"],
+      "skill": "DBMS",
+      "subtopic": "Transactions",
+      "prerequisite_skills": ["DBMS"]
+    },
+    {
+      "text": "Explain the difference between optimistic and pessimistic locking concurrency control schemes.",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["optimistic locking", "pessimistic locking", "concurrency control", "versioning", "shared lock", "exclusive lock", "deadlock potential"],
+      "skill": "DBMS",
+      "subtopic": "Concurrency Control",
+      "prerequisite_skills": ["DBMS"]
+    },
+    {
+      "text": "Explain the process of how a web browser loads a webpage, starting from URL entry to the final render.",
+      "category": "Technical",
+      "difficulty": "Medium",
+      "expected_keywords": ["dns", "tcp", "http", "rendering", "html", "css", "javascript", "dom", "viewport"],
+      "skill": "System Design",
+      "subtopic": "Web Request Flow",
+      "prerequisite_skills": ["Network Protocols", "HTTP"]
+    },
+    {
+      "text": "How would you design a URL shortening service like TinyURL? Discuss database schema and scaling strategies.",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["url shortening", "hashing", "hash collision", "database schema", "scaling", "load balancing", "availability", "short_code", "redirect"],
+      "skill": "System Design",
+      "subtopic": "URL Shortener",
+      "prerequisite_skills": ["Scalability", "Database Design"]
+    },
+    {
+      "text": "Design a distributed cache system like Redis or Memcached. How would you handle cache eviction and data consistency?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["distributed cache", "cache eviction", "lru", "consistency", "replication", "partitioning", "high availability", "fault tolerance", "read/write operations"],
+      "skill": "System Design",
+      "subtopic": "Distributed Cache",
+      "prerequisite_skills": ["Distributed Systems", "Concurrency"]
+    },
+    {
+      "text": "How do you design a notification system for a social media platform? Discuss push notifications, email, and in-app notifications.",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["notification system", "real-time", "websocket", "message queue", "scalability", "fan-out", "fan-in", "database design", "push notification"],
+      "skill": "System Design",
+      "subtopic": "Notification System",
+      "prerequisite_skills": ["Scalability", "Real-time Systems"]
+    },
+    {
+      "text": "Explain the architecture of the TCP/IP model and compare it with the OSI model. Where do they differ most significantly?",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["tcp/ip", "osi", "layers", "network stack", "encapsulation", "decapsulation", "transport layer", "internet layer", "comparison"],
+      "skill": "System Design",
+      "subtopic": "Network Models",
+      "prerequisite_skills": ["Networking", "OSI Model"]
+    },
+    {
+      "text": "Describe the CAP theorem and explain its implications for distributed database design.",
+      "category": "Technical",
+      "difficulty": "Hard",
+      "expected_keywords": ["cap theorem", "consistency", "availability", "partition tolerance", "distributed systems", "trade-offs", "noSQL"],
+      "skill": "System Design",
+      "subtopic": "Distributed Systems",
+      "prerequisite_skills": ["Distributed Systems", "Scalability"]
+    }
+  ]
+}
